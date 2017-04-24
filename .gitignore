@@ -147,3 +147,4 @@ samples/client/petstore/typescript-fetch/**/typings
 # aspnetcore
 samples/server/petstore/aspnetcore/.vs/
 
+/sdk/
