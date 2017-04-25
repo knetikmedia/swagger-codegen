@@ -189,6 +189,11 @@
       <artifactId>gson</artifactId>
       <version>${gson-version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+      <version>0.9.10</version>
+    </dependency>
     {{^java8}}
     <dependency>
       <groupId>joda-time</groupId>
@@ -224,11 +229,6 @@
       <artifactId>junit</artifactId>
       <version>${junit-version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.reflections</groupId>
-      <artifactId>reflections</artifactId>
-      <version>0.9.10</version>
     </dependency>
   </dependencies>
   <properties>

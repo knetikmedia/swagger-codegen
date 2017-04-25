@@ -165,6 +165,7 @@ public class JavaClientCodegen extends AbstractJavaCodegen
 		supportingFiles.add(new SupportingFile("ApiClient.mustache", invokerFolder, "ApiClient.java"));
 		supportingFiles.add(new SupportingFile("RuntimeTypeAdapterFactory.mustache", invokerFolder,
 				"RuntimeTypeAdapterFactory.java"));
+		supportingFiles.add(new SupportingFile("TypeName.mustache", invokerFolder, "TypeName.java"));
 		supportingFiles.add(new SupportingFile("StringUtil.mustache", invokerFolder, "StringUtil.java"));
 		supportingFiles.add(new SupportingFile("auth/HttpBasicAuth.mustache", authFolder, "HttpBasicAuth.java"));
 		supportingFiles.add(new SupportingFile("auth/ApiKeyAuth.mustache", authFolder, "ApiKeyAuth.java"));
