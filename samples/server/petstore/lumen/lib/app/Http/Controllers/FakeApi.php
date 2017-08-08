@@ -91,8 +91,8 @@ class FakeApi extends Controller
         if (!isset($input['pattern_without_delimiter'])) {
             throw new \InvalidArgumentException('Missing the required parameter $pattern_without_delimiter when calling testEndpointParameters');
         }
-        if (!preg_match("/^[A-Z].", $input['pattern_without_delimiter'])) {
-            throw new \InvalidArgumentException('invalid value for $pattern_without_delimiter when calling FakeApi.testEndpointParameters, must conform to the pattern /^[A-Z]..');
+        if (!preg_match("/^[A-Z].*/", $input['pattern_without_delimiter'])) {
+            throw new \InvalidArgumentException('invalid value for $pattern_without_delimiter when calling FakeApi.testEndpointParameters, must conform to the pattern /^[A-Z].*/.');
         }
         $pattern_without_delimiter = $input['pattern_without_delimiter'];
 
@@ -182,5 +182,89 @@ class FakeApi extends Controller
 
 
         return response('How about implementing testEnumParameters as a GET method ?');
+    }
+    /**
+     * Operation fakeOuterBooleanSerialize
+     *
+     * .
+     *
+     *
+     * @return Http response
+     */
+    public function fakeOuterBooleanSerialize()
+    {
+        $input = Request::all();
+
+        //path params validation
+
+
+        //not path params validation
+        $body = $input['body'];
+
+
+        return response('How about implementing fakeOuterBooleanSerialize as a POST method ?');
+    }
+    /**
+     * Operation fakeOuterCompositeSerialize
+     *
+     * .
+     *
+     *
+     * @return Http response
+     */
+    public function fakeOuterCompositeSerialize()
+    {
+        $input = Request::all();
+
+        //path params validation
+
+
+        //not path params validation
+        $body = $input['body'];
+
+
+        return response('How about implementing fakeOuterCompositeSerialize as a POST method ?');
+    }
+    /**
+     * Operation fakeOuterNumberSerialize
+     *
+     * .
+     *
+     *
+     * @return Http response
+     */
+    public function fakeOuterNumberSerialize()
+    {
+        $input = Request::all();
+
+        //path params validation
+
+
+        //not path params validation
+        $body = $input['body'];
+
+
+        return response('How about implementing fakeOuterNumberSerialize as a POST method ?');
+    }
+    /**
+     * Operation fakeOuterStringSerialize
+     *
+     * .
+     *
+     *
+     * @return Http response
+     */
+    public function fakeOuterStringSerialize()
+    {
+        $input = Request::all();
+
+        //path params validation
+
+
+        //not path params validation
+        $body = $input['body'];
+
+
+        return response('How about implementing fakeOuterStringSerialize as a POST method ?');
     }
 }
