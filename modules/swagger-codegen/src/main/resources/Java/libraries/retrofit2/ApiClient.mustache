@@ -46,6 +46,8 @@ public class ApiClient {
   private OkHttpClient.Builder okBuilder;
   private Retrofit.Builder adapterBuilder;
   private JSON json;
+  
+  public static String baseUrl = "{{{basePath}}}";
 
   public ApiClient() {
     apiAuthorizations = new LinkedHashMap<String, Interceptor>();
@@ -65,7 +67,7 @@ public class ApiClient {
         auth = new ApiKeyAuth({{#isKeyInHeader}}"header"{{/isKeyInHeader}}{{^isKeyInHeader}}"query"{{/isKeyInHeader}}, "{{keyParamName}}");
         {{/isApiKey}}
         {{#isOAuth}}
-        auth = new OAuth(OAuthFlow.{{flow}}, "{{authorizationUrl}}", "{{tokenUrl}}", "{{#scopes}}{{scope}}{{#hasMore}}, {{/hasMore}}{{/scopes}}");
+        auth = new OAuth(OAuthFlow.{{flow}}, baseUrl + "{{authorizationUrl}}", baseUrl + "{{tokenUrl}}", "{{#scopes}}{{scope}}{{#hasMore}}, {{/hasMore}}{{/scopes}}");
         {{/isOAuth}}
       } else {{/authMethods}}{
         throw new RuntimeException("auth name \"" + authName + "\" not found in available auth names");
@@ -129,7 +131,6 @@ public class ApiClient {
     json = new JSON();
     okBuilder = new OkHttpClient.Builder();
 
-    String baseUrl = "{{{basePath}}}";
     if (!baseUrl.endsWith("/"))
       baseUrl = baseUrl + "/";
 
