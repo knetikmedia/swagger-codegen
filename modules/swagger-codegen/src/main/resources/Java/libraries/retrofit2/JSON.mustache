@@ -577,7 +577,7 @@ public class JSON {
 	  }
 	
 	  public <R> TypeAdapter<R> create(Gson gson, TypeToken<R> type) {
-	    if (type.getRawType() != baseType) {
+	    if (null == type || !baseType.isAssignableFrom(type.getRawType())) {
 	      return null;
 	    }
 	
@@ -594,7 +594,7 @@ public class JSON {
 	    return new TypeAdapter<R>() {
 	      @Override public R read(JsonReader in) throws IOException {
 	        JsonElement jsonElement = Streams.parse(in);
-	        JsonElement labelJsonElement = jsonElement.getAsJsonObject().remove(typeFieldName);
+	        JsonElement labelJsonElement = jsonElement.getAsJsonObject().get(typeFieldName);
 	        if (labelJsonElement == null) {
 	          throw new JsonParseException("cannot deserialize " + baseType
 	              + " because it does not define a field named " + typeFieldName);
@@ -619,15 +619,11 @@ public class JSON {
 	              + "; did you forget to register a subtype?");
 	        }
 	        JsonObject jsonObject = delegate.toJsonTree(value).getAsJsonObject();
-	        if (jsonObject.has(typeFieldName)) {
-	          throw new JsonParseException("cannot serialize " + srcType.getName()
-	              + " because it already defines a field named " + typeFieldName);
-	        }
 	        JsonObject clone = new JsonObject();
-	        clone.add(typeFieldName, new JsonPrimitive(label));
 	        for (Map.Entry<String, JsonElement> e : jsonObject.entrySet()) {
 	          clone.add(e.getKey(), e.getValue());
 	        }
+	        clone.add(typeFieldName, new JsonPrimitive(label));
 	        Streams.write(clone, out);
 	      }
 	    }.nullSafe();
