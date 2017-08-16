@@ -50,7 +50,7 @@ git pull origin master
 rm -r *
 
 cd ../..
-java -jar $BASE_JAR generate -i $JSON_FILE -DinvokerPackage="com.knetikcloud.client",modelPackage="com.knetikcloud.model",apiPackage="com.knetikcloud.api" -l java $ID_FLAGS --artifact-id knetikcloud-android-client --library=okhttp-gson -o sdk/android
+java -jar $BASE_JAR generate -i $JSON_FILE -DinvokerPackage="com.knetikcloud.client",modelPackage="com.knetikcloud.model",apiPackage="com.knetikcloud.api" -l java $ID_FLAGS --artifact-id knetikcloud-android-client --library=retrofit2 -o sdk/android
 cd sdk/android
 
 sed -i -e 's~'"$README_ORIGINAL"'~'"$README_REPLACEMENT"'~g' README.md
