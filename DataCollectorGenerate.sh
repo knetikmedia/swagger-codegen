@@ -101,7 +101,7 @@ git pull origin master
 rm -r *
 
 cd ../..
-java -jar $BASE_JAR generate -i $JSON_FILE -DinvokerPackage="io.knetik.client",modelPackage="io.knetik.model",apiPackage="io.knetik.api" -l java $ID_FLAGS --artifact-id knetikio-java-client --library jersey2 -o sdk/java
+java -jar $BASE_JAR generate -i $JSON_FILE -DinvokerPackage="io.knetik.client",modelPackage="io.knetik.model",apiPackage="io.knetik.api" -l java $ID_FLAGS --artifact-id splyt-java-client --library jersey2 -o sdk/java
 cd sdk/java
 
 sed -i -e 's~'"$README_ORIGINAL"'~'"$README_REPLACEMENT"'~g' README.md
