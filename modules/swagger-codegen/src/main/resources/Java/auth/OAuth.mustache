@@ -10,6 +10,9 @@ import java.util.List;
 {{>generatedAnnotation}}
 public class OAuth implements Authentication {
   private String accessToken;
+  private Long expiration;
+  private String refreshToken;
+  private OAuthExpirationHandler expirationHandler;
 
   public String getAccessToken() {
     return accessToken;
@@ -18,11 +21,39 @@ public class OAuth implements Authentication {
   public void setAccessToken(String accessToken) {
     this.accessToken = accessToken;
   }
+  
+  public Long getExpiration() {
+    return expiration;
+  }
+
+  public void setExpiration(Long expiration) {
+    this.expiration = expiration;
+  }
+
+  public String getRefreshToken() {
+    return refreshToken;
+  }
+
+  public void setRefreshToken(String refreshToken) {
+    this.refreshToken = refreshToken;
+  }
+
+  public OAuthExpirationHandler getExpirationHandler() {
+    return expirationHandler;
+  }
+
+  public void setExpirationHandler(OAuthExpirationHandler expirationHandler) {
+    this.expirationHandler = expirationHandler;
+  }
 
   @Override
   public void applyToParams(List<Pair> queryParams, Map<String, String> headerParams) {
     if (accessToken != null) {
-      headerParams.put("Authorization", "Bearer " + accessToken);
+      if (expiration != null && expiration < System.currentTimeMillis())
+        if (expirationHandler != null)
+          expirationHandler.handle(this);
+      if (accessToken != null)
+        headerParams.put("Authorization", "Bearer " + accessToken);
     }
   }
 }
