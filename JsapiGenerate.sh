@@ -367,7 +367,7 @@ git pull origin master
 rm -r *
 
 cd ../..
-java -jar $BASE_JAR generate -i $JSON_FILE -l javascript -c javascript.config.json $ID_FLAGS --artifact-id knetikcloud-javascript-client -o sdk/javascript
+java -jar $BASE_JAR generate -i $JSON_FILE -l javascript -c jsapi.javascript.config.json $ID_FLAGS --artifact-id knetikcloud-javascript-client -o sdk/javascript
 cd sdk/javascript
 
 sed -i -e 's~'"$README_ORIGINAL"'~'"$README_REPLACEMENT"'~g' README.md
@@ -397,29 +397,6 @@ sed -i -e 's~'"$README_ORIGINAL"'~'"$README_REPLACEMENT"'~g' README.md
 
 git add -A
 git commit -m "JSAPI Objective C API update"
-git push -u origin master
-cd ../..
-
-#Perl
-mkdir -p sdk/perl
-chmod 777 sdk/perl
-cd sdk/perl
-
-git init
-git config user.name "$GIT_USERNAME"
-git config user.email "$GIT_EMAIL"
-git remote add origin git@github.com:knetikmedia/knetikcloud-perl-client.git
-git pull origin master
-rm -r *
-
-cd ../..
-java -jar $BASE_JAR generate -i $JSON_FILE -l perl -DmoduleName="KnetikCloud" $ID_FLAGS --artifact-id knetikcloud-perl-client -o sdk/perl
-cd sdk/perl
-
-sed -i -e 's~'"$README_ORIGINAL_PERL"'~'"$README_REPLACEMENT"'~g' README.md
-
-git add -A
-git commit -m "JSAPI Perl API update"
 git push -u origin master
 cd ../..
 
