@@ -1,0 +1,12 @@
+{{>licenseInfo}}
+
+package {{invokerPackage}}.auth;
+
+import {{invokerPackage}}.ApiException;
+
+{{>generatedAnnotation}}
+public interface OAuthExpirationHandler {
+  
+  void handle(OAuth oAuth) throws ApiException;
+  
+}

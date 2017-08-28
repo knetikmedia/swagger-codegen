@@ -1,0 +1,192 @@
+{{>licenseInfo}}
+
+package {{invokerPackage}}.auth;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.core.GenericType;
+
+import {{invokerPackage}}.ApiClient;
+import {{invokerPackage}}.ApiException;
+import {{invokerPackage}}.Pair;
+
+{{>generatedAnnotation}}
+public class OAuth implements Authentication {
+	private ApiClient apiClient;
+	private String path;
+	private String clientId;
+	private String clientSecret;
+	private OAuthExpirationHandler expirationHandler;
+
+	private String accessToken;
+	private Long expiration;
+	private String refreshToken;
+
+	public OAuth() {
+		super();
+	}
+
+	public OAuth(ApiClient apiClient, String path) {
+		super();
+		this.apiClient = apiClient;
+		this.path = path;
+	}
+
+	public String getAccessToken() {
+		return accessToken;
+	}
+
+	public void setAccessToken(String accessToken) {
+		this.accessToken = accessToken;
+	}
+
+	public Long getExpiration() {
+		return expiration;
+	}
+
+	public void setExpiration(Long expiration) {
+		this.expiration = expiration;
+	}
+
+	public String getRefreshToken() {
+		return refreshToken;
+	}
+
+	public void setRefreshToken(String refreshToken) {
+		this.refreshToken = refreshToken;
+	}
+
+	public OAuthExpirationHandler getExpirationHandler() {
+		return expirationHandler;
+	}
+
+	public void setExpirationHandler(OAuthExpirationHandler expirationHandler) {
+		this.expirationHandler = expirationHandler;
+	}
+
+	public ApiClient getApiClient() {
+		return apiClient;
+	}
+
+	public void setApiClient(ApiClient apiClient) {
+		this.apiClient = apiClient;
+	}
+
+	public String getClientId() {
+		return clientId;
+	}
+
+	public void setClientId(String clientId) {
+		this.clientId = clientId;
+	}
+
+	public String getClientSecret() {
+		return clientSecret;
+	}
+
+	public void setClientSecret(String clientSecret) {
+		this.clientSecret = clientSecret;
+	}
+
+	@Override
+	public void applyToParams(List<Pair> queryParams, Map<String, String> headerParams) throws ApiException {
+		if (accessToken != null) {
+			if (expiration != null && expiration < System.currentTimeMillis())
+				if (expirationHandler != null)
+					expirationHandler.handle(this);
+			if (accessToken != null)
+				headerParams.put("Authorization", "Bearer " + accessToken);
+		}
+	}
+
+	/**
+	 * Dumps the current access token.
+	 */
+	public void logout() {
+		accessToken = null;
+		refreshToken = null;
+		expiration = null;
+	}
+
+	/**
+	 * Get an access token using username and password.
+	 * 
+	 * @param username
+	 * @param password
+	 * @throws ApiException
+	 */
+	public void passwordAuthentication(String username, String password) throws ApiException {
+		Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+		localVarFormParams.put("username", username);
+		localVarFormParams.put("password", password);
+		authenticate("password", localVarFormParams);
+	}
+
+	/**
+	 * Get an access token using client credentials.
+	 * 
+	 * @throws ApiException
+	 */
+	public void clientCredentialsAuthentication() throws ApiException {
+		authenticate("client_credentials", null);
+	}
+
+	/**
+	 * Refresh the current access token using the refresh token.
+	 * 
+	 * @throws ApiException
+	 */
+	public void refreshAuthentication() throws ApiException {
+		Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+		localVarFormParams.put("refresh_token", refreshToken);
+		authenticate("refresh_token", localVarFormParams);
+	}
+
+	/**
+	 * Call for an access token. Useful for non-standard grant types. See
+	 * convenience methods for standard types.
+	 * 
+	 * @param grantType
+	 *            The grant type
+	 * @param params
+	 *            Additional form parameters beyond grant_type, client_id and
+	 *            client_secret
+	 * @throws ApiException
+	 */
+	public void authenticate(String grantType, Map<String, Object> params) throws ApiException {
+		Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+
+		if (params == null)
+			params = new HashMap<String, Object>();
+		params.put("grant_type", grantType);
+		params.put("client_id", clientId);
+		if (clientSecret != null)
+			params.put("client_secret", clientSecret);
+
+		final String[] localVarAccepts = { "application/json" };
+		final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
+
+		final String[] localVarContentTypes = { "application/x-www-form-urlencoded" };
+		final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
+
+		String[] localVarAuthNames = new String[] {};
+
+		GenericType<Map> localVarReturnType = new GenericType<Map>() {
+		};
+
+		Map result = apiClient.invokeAPI(path, "POST", null, null, localVarHeaderParams, params,
+				localVarAccept, localVarContentType, localVarAuthNames, localVarReturnType);
+
+		setAccessToken(result.get("access_token").toString());
+		if (result.get("refresh_token") != null)
+			setRefreshToken(result.get("refresh_token").toString());
+		else
+			setRefreshToken(null);
+		if (result.get("expires_in") != null)
+			setExpiration(System.currentTimeMillis() + (Integer.parseInt(result.get("expires_in").toString()) * 1000));
+		else
+			setExpiration(null);
+	}
+}
