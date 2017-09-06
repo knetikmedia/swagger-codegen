@@ -32,12 +32,10 @@ README_REPLACEMENT+="{\"access_token\":\"25a0659c-6f4a-40bd-950e-0ba4af7acf0f\",
 README_REPLACEMENT+="\`\`\` \n\n"
 README_REPLACEMENT+="Use the provided access_token in sub-sequent requests to authenticate (see code below). Make sure you refresh your token before it expires to avoid having to re-authenticate."
 
-ID_FLAGS="--group-id io.knetik --artifact-version $VERSION_NUMBER"
+ID_FLAGS="--group-id io.knetik --artifact-version $VERSION_NUMBER -DprojectVersion=$VERSION_NUMBER"
 
 mkdir -p sdk
 chmod 777 sdk
-
-
 
 #Android
 mkdir -p sdk/android
@@ -52,7 +50,7 @@ git pull origin master
 rm -r *
 
 cd ../..
-java -jar $BASE_JAR generate -i $JSON_FILE -l android $ID_FLAGS --artifact-id splyt-android-client -o sdk/android
+java -jar $BASE_JAR generate -i $JSON_FILE -DinvokerPackage="io.knetik.client",modelPackage="io.knetik.model",apiPackage="io.knetik.api" -l java $ID_FLAGS --artifact-id knetikio-android-client --library=retrofit2 -o sdk/android
 cd sdk/android
 
 #sed -i -e 's~'"$POM_ORIGINAL"'~'"$POM_REPLACEMENT"'~g' pom.xml
@@ -78,14 +76,14 @@ git pull origin master
 rm -r *
 
 cd ../..
-java -jar $BASE_JAR generate -i $JSON_FILE -l cpprest -DmodelPackage="io.knetik.client.model",apiPackage="io.knetik.client.api" $ID_FLAGS --artifact-id splyt-cpprest-client -o sdk/cpprest
+java -jar $BASE_JAR generate -i $JSON_FILE -l cpprest -DmodelPackage="io.knetik.client.model",apiPackage="io.knetik.client.api" $ID_FLAGS --artifact-id knetikio-cpprest-client -o sdk/cpprest
 cd sdk/cpprest
 
 #sed -i -e 's~'"$POM_ORIGINAL"'~'"$POM_REPLACEMENT"'~g' pom.xml
 #sed -i -e 's~'"$README_ORIGINAL"'~'"$README_REPLACEMENT"'~g' README.md
 
 git add -A
-git commit -m "Splyt CppRest API update"
+git commit -m "Knetik IO CppRest API update"
 git push -u origin master
 cd ../..
 
@@ -113,6 +111,28 @@ git commit -m "JSAPI Java API update"
 git push -u origin master
 cd ../..
 
+#Javascript
+mkdir -p sdk/javascript
+chmod 777 sdk/javascript
+cd sdk/javascript
+
+git init
+git config user.name "$GIT_USERNAME"
+git config user.email "$GIT_EMAIL"
+git remote add origin git@github.com:splytanalytics/knetikio-javascript-client.git
+git pull origin master
+rm -r *
+
+cd ../..
+java -jar $BASE_JAR generate -i $JSON_FILE -l javascript -c knetikio.javascript.config.json $ID_FLAGS --artifact-id knetikio-javascript-client -o sdk/javascript
+cd sdk/javascript
+
+sed -i -e 's~'"$README_ORIGINAL"'~'"$README_REPLACEMENT"'~g' README.md
+
+git add -A
+git commit -m "Knetik IO Javascript API update"
+git push -u origin master
+cd ../..
 
 
 #Objective C
@@ -131,7 +151,6 @@ cd ../..
 java -jar $BASE_JAR generate -i $JSON_FILE -l objc -DpodName="DataCollectorClient",classPrefix="DCC",gitRepoUrl="https://github.com/splytanalytics/splyt-objc-client" $ID_FLAGS --artifact-id splyt-objc-client -o sdk/objc
 cd sdk/objc
 
-#sed -i -e 's~'"$POM_ORIGINAL"'~'"$POM_REPLACEMENT"'~g' pom.xml
 sed -i -e 's~'"$README_ORIGINAL"'~'"$README_REPLACEMENT"'~g' README.md
 
 git add -A
