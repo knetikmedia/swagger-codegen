@@ -4,6 +4,7 @@ using RestSharp;
 using {{packageName}}.Client;
 {{#hasImport}}using {{packageName}}.Model;
 {{/hasImport}}
+using {{packageName}}.Utils;
 using UnityEngine;
 
 using Object = System.Object;
@@ -18,13 +19,18 @@ namespace {{packageName}}.Api
     /// </summary>
     public interface I{{classname}}
     {
+        {{#operation}}{{#returnType}}{{{returnType}}} {{nickname}}Data { get; }
+
+        {{/returnType}}{{/operation}}
         {{#operation}}
         /// <summary>
         /// {{summary}} {{notes}}
         /// </summary>
-        {{#allParams}}/// <param name="{{paramName}}">{{description}}</param>
-        {{/allParams}}/// <returns>{{#returnType}}{{returnType}}{{/returnType}}</returns>
-        {{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}void{{/returnType}} {{nickname}} ({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+        {{#allParams}}
+        /// <param name="{{paramName}}">{{description}}</param>
+        {{/allParams}}            
+        void {{nickname}}({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+
         {{/operation}}
     }
   
@@ -33,6 +39,24 @@ namespace {{packageName}}.Api
     /// </summary>
     public class {{classname}} : I{{classname}}
     {
+        {{#operation}}
+        private readonly KnetikCoroutine m{{nickname}}Coroutine;
+        private DateTime m{{nickname}}StartTime;
+        private string m{{nickname}}Path;
+        {{/operation}}
+
+        {{#operation}}
+        {{#returnType}}
+        public {{{returnType}}} {{nickname}}Data { get; private set; }
+        public delegate void {{nickname}}CompleteDelegate({{{returnType}}} response);
+        public {{nickname}}CompleteDelegate {{nickname}}Complete;
+        {{/returnType}}
+        {{^returnType}}
+        public delegate void {{nickname}}CompleteDelegate();
+        public {{nickname}}CompleteDelegate {{nickname}}Complete;
+        {{/returnType}}
+
+        {{/operation}}
         /// <summary>
         /// Initializes a new instance of the <see cref="{{classname}}"/> class.
         /// </summary>
@@ -40,53 +64,59 @@ namespace {{packageName}}.Api
         public {{classname}}()
         {
             KnetikClient = KnetikConfiguration.DefaultClient;
+            {{#operation}}
+            m{{nickname}}Coroutine = new KnetikCoroutine(KnetikClient);
+            {{/operation}}
         }
     
         /// <summary>
         /// Gets the Knetik client.
         /// </summary>
         /// <value>An instance of the KnetikClient</value>
-        public KnetikClient KnetikClient {get; private set;}
+        public KnetikClient KnetikClient { get; private set; }
 
         {{#operation}}
         /// <summary>
         /// {{summary}} {{notes}}
         /// </summary>
-        {{#allParams}}/// <param name="{{paramName}}">{{description}}</param> 
-        {{/allParams}}/// <returns>{{#returnType}}{{returnType}}{{/returnType}}</returns>            
-        public {{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}void{{/returnType}} {{nickname}}({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
+        {{#allParams}}
+        /// <param name="{{paramName}}">{{description}}</param>
+        {{/allParams}}            
+        public void {{nickname}}({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
         {
             {{#allParams}}{{#required}}// verify the required parameter '{{paramName}}' is set
             if ({{paramName}} == null)
             {
                 throw new KnetikException(400, "Missing required parameter '{{paramName}}' when calling {{nickname}}");
             }
-            
             {{/required}}{{/allParams}}
-            string urlPath = "{{{path}}}";
-            //urlPath = urlPath.Replace("{format}", "json");
-            {{#pathParams}}urlPath = urlPath.Replace("{" + "{{baseName}}" + "}", KnetikClient.ParameterToString({{{paramName}}}));
+            m{{nickname}}Path = "{{{path}}}";
+            if (!string.IsNullOrEmpty(m{{nickname}}Path))
+            {
+                m{{nickname}}Path = m{{nickname}}Path.Replace("{format}", "json");
+            }
+            {{#pathParams}}m{{nickname}}Path = m{{nickname}}Path.Replace("{" + "{{baseName}}" + "}", KnetikClient.ParameterToString({{{paramName}}}));
             {{/pathParams}}
-    
+
             Dictionary<string, string> queryParams = new Dictionary<string, string>();
             Dictionary<string, string> headerParams = new Dictionary<string, string>();
             Dictionary<string, string> formParams = new Dictionary<string, string>();
             Dictionary<string, FileParameter> fileParams = new Dictionary<string, FileParameter>();
-            String postBody = null;
+            string postBody = null;
 
             {{#queryParams}}
             if ({{paramName}} != null)
             {
                 queryParams.Add("{{baseName}}", KnetikClient.ParameterToString({{paramName}}));
             }
-            
+
             {{/queryParams}}
             {{#headerParams}}
             if ({{paramName}} != null)
             {
                 headerParams.Add("{{baseName}}", KnetikClient.ParameterToString({{paramName}}));
             }			
-            
+
             {{/headerParams}}
             {{#formParams}}
             if ({{paramName}} != null)
@@ -100,24 +130,43 @@ namespace {{packageName}}.Api
  
             {{/bodyParam}}
             // authentication setting, if any
-            String[] authSettings = new String[] { {{#authMethods}} "{{name}}"{{#hasMore}},{{/hasMore}}{{/authMethods}} };
+            string[] authSettings = new string[] { {{#authMethods}} "{{name}}"{{#hasMore}},{{/hasMore}}{{/authMethods}} };
 
-            Debug.LogFormat("Knetik Cloud: Calling '{0}'...", urlPath);
+            m{{nickname}}StartTime = DateTime.Now;
+            KnetikLogger.LogRequest(m{{nickname}}StartTime, m{{nickname}}Path, "Sending server request...");
 
             // make the HTTP request
-            IRestResponse response = (IRestResponse) KnetikClient.CallApi(urlPath, Method.{{httpMethod}}, queryParams, postBody, headerParams, formParams, fileParams, authSettings);
-    
+            m{{nickname}}Coroutine.ResponseReceived += {{nickname}}Callback;
+            m{{nickname}}Coroutine.Start(m{{nickname}}Path, Method.{{httpMethod}}, queryParams, postBody, headerParams, formParams, fileParams, authSettings);
+        }
+
+        private void {{nickname}}Callback(IRestResponse response)
+        {
             if (((int)response.StatusCode) >= 400)
             {
-                throw new KnetikException ((int)response.StatusCode, "Error calling {{nickname}}: " + response.Content, response.Content);
+                throw new KnetikException((int)response.StatusCode, "Error calling {{nickname}}: " + response.Content, response.Content);
             }
             else if (((int)response.StatusCode) == 0)
             {
-                throw new KnetikException ((int)response.StatusCode, "Error calling {{nickname}}: " + response.ErrorMessage, response.ErrorMessage);
+                throw new KnetikException((int)response.StatusCode, "Error calling {{nickname}}: " + response.ErrorMessage, response.ErrorMessage);
             }
-    
-            Debug.LogFormat("Knetik Cloud: '{0}' returned successfully.", urlPath);
-            {{#returnType}}return ({{{returnType}}}) KnetikClient.Deserialize(response.Content, typeof({{{returnType}}}), response.Headers);{{/returnType}}{{^returnType}}return;{{/returnType}}
+
+            {{#returnType}}
+            {{nickname}}Data = ({{{returnType}}}) KnetikClient.Deserialize(response.Content, typeof({{{returnType}}}), response.Headers);
+            KnetikLogger.LogResponse(m{{nickname}}StartTime, m{{nickname}}Path, string.Format("Response received successfully:\n{0}", {{nickname}}Data.ToString()));
+
+            if ({{nickname}}Complete != null)
+            {
+                {{nickname}}Complete({{nickname}}Data);
+            }
+            {{/returnType}}
+            {{^returnType}}
+            KnetikLogger.LogResponse(m{{nickname}}StartTime, m{{nickname}}Path, "Response received successfully.");
+            if ({{nickname}}Complete != null)
+            {
+                {{nickname}}Complete();
+            }
+            {{/returnType}}
         }
         {{/operation}}
     }
