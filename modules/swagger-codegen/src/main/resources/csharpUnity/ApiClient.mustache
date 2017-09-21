@@ -37,52 +37,8 @@ namespace {{packageName}}.Client
         public OAuth2Resource AuthToken { get; private set; }
 
         /// <summary>
-        /// Gets or sets the base path.
-        /// </summary>
-        /// <value>The base path</value>
-        public string BasePath
-        {
-            get
-            {
-                return mBasePath;
-            }
-            set
-            {
-                mBasePath = value;
-                mRestClient = new RestClient(mBasePath);
-            }
-        }
-    
-        /// <summary>
-        /// Gets the RestClient.
-        /// </summary>
-        /// <value>An instance of the RestClient</value>
-        public RestClient RestClient
-        {
-            get
-            {
-                return mRestClient;
-            }
-        }
-    
-        /// <summary>
-        /// Gets the default header.
-        /// </summary>
-        public Dictionary<string, string> DefaultHeader
-        {
-            get { return mDefaultHeaderMap; }
-        }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="KnetikClient" /> class.
         /// </summary>
-        /// <param name="basePath">The base path.</param>
-        public KnetikClient(string basePath)
-        {
-            BasePath = basePath;
-            ServicePointManager.ServerCertificateValidationCallback = RemoteCertificateValidationCallback;
-        }
-
         public KnetikClient()
         {
             ServicePointManager.ServerCertificateValidationCallback = RemoteCertificateValidationCallback;
@@ -143,48 +99,9 @@ namespace {{packageName}}.Client
                 request.AddParameter("application/json", postBody, ParameterType.RequestBody);
             }
 
-            return (System.Object)RestClient.Execute(request);
+            return (System.Object)mRestClient.Execute(request);
         }
-    
-        /// <summary>
-        /// Add default header.
-        /// </summary>
-        /// <param name="key">Header field name.</param>
-        /// <param name="value">Header field value.</param>
-        /// <returns></returns>
-        public void AddDefaultHeader(string key, string value)
-        {
-            mDefaultHeaderMap.Add(key, value);
-        }
-    
-        /// <summary>
-        /// Escape string (url-encoded).
-        /// </summary>
-        /// <param name="str">string to be escaped.</param>
-        /// <returns>Escaped string.</returns>
-        public string EscapeString(string str)
-        {
-            return RestSharp.Contrib.HttpUtility.UrlEncode(str);
-        }
-    
-        /// <summary>
-        /// Create FileParameter based on Stream.
-        /// </summary>
-        /// <param name="parameterName">Parameter name.</param>
-        /// <param name="stream">Input stream.</param>
-        /// <returns>FileParameter.</returns>
-        public FileParameter ParameterToFile(string parameterName, Stream stream)
-        {
-            if (stream is FileStream)
-            {
-                return FileParameter.Create(parameterName, stream.ReadAsBytes(), Path.GetFileName(((FileStream)stream).Name));
-            }
-            else
-            {
-                return FileParameter.Create(parameterName, stream.ReadAsBytes(), "no_file_name_provided");
-            }
-        }
-    
+
         /// <summary>
         /// If parameter is DateTime, output in a formatted string (default ISO 8601), customizable with KnetikConfiguration.DateTime.
         /// If parameter is a list of string, join the list with ",".
@@ -284,28 +201,7 @@ namespace {{packageName}}.Client
                 throw new KnetikException(500, e.Message);
             }
         }
-    
-        /// <summary>
-        /// Get the API key with prefix.
-        /// </summary>
-        /// <param name="apiKeyIdentifier">API key identifier (authentication scheme).</param>
-        /// <returns>API key with prefix.</returns>
-        public string GetApiKeyWithPrefix(string apiKeyIdentifier)
-        {
-            string apiKeyValue = string.Empty;
-            KnetikConfiguration.ApiKey.TryGetValue(apiKeyIdentifier, out apiKeyValue);
 
-            string apiKeyPrefix = string.Empty;
-            if (KnetikConfiguration.ApiKeyPrefix.TryGetValue(apiKeyIdentifier, out apiKeyPrefix))
-            {
-                return apiKeyPrefix + " " + apiKeyValue;
-            }
-            else
-            {
-                return apiKeyValue;
-            }
-        }
-    
         /// <summary>
         /// Update parameters based on authentication.
         /// </summary>
@@ -336,18 +232,7 @@ namespace {{packageName}}.Client
                 }
             }
         }
- 
-        /// <summary>
-        /// Encode string in base64 format.
-        /// </summary>
-        /// <param name="text">string to be encoded.</param>
-        /// <returns>Encoded string.</returns>
-        public static string Base64Encode(string text)
-        {
-            byte[] textByte = System.Text.Encoding.UTF8.GetBytes(text);
-            return System.Convert.ToBase64String(textByte);
-        }
-    
+
         /// <summary>
         /// Dynamically cast the object into target type.
         /// </summary>
@@ -386,8 +271,6 @@ namespace {{packageName}}.Client
                 KnetikLogger.LogError("You must set up the base URL in the editor window!");
                 return;
             }
-
-            BasePath = mProjectSettings.BaseUrl;
 
             mAccessTokenApi = new AccessTokenApi();
             mAccessTokenApi.GetOAuthTokenComplete += GetOAuthTokenComplete;
