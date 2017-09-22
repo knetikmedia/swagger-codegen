@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 {{#model}}
 namespace {{packageName}}.Model
 {
+    /// <inheritdoc />
     /// <summary>
     /// {{description}}
     /// </summary>
@@ -22,6 +23,7 @@ namespace {{packageName}}.Model
         public {{{datatype}}} {{name}} { get; set; }
 
         {{/vars}}
+        /// <inheritdoc />
         /// <summary>
         /// Get the string presentation of the object
         /// </summary>

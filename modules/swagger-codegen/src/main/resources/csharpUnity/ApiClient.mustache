@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Security;
@@ -10,12 +11,13 @@ using {{packageName}}.Model;
 using {{packageName}}.Utils;
 using Newtonsoft.Json;
 using RestSharp;
-using RestSharp.Extensions;
 using UnityEngine;
+using Object = System.Object;
 
 
 namespace {{packageName}}.Client
 {
+    /// <inheritdoc />
     /// <summary>
     /// The Unity client that is responsible for making HTTP calls to the backend.
     /// </summary>
@@ -23,10 +25,14 @@ namespace {{packageName}}.Client
     {
         private KnetikProjectSettings mProjectSettings;
         private KnetikUserCredentials mUserCredentials;
+
         private readonly Dictionary<string, string> mDefaultHeaderMap = new Dictionary<string, string>();
-        private string mBasePath;
+        private static string mDateTimeFormat = IsoDatetimeFormat;
+
         private RestClient mRestClient;
         private AccessTokenApi mAccessTokenApi;
+
+        private const string IsoDatetimeFormat = "o";
 
         public const string GrantTypeClientCredentials = "client_credentials";
         public const string GrantTypeUserPassword = "password";
@@ -35,6 +41,11 @@ namespace {{packageName}}.Client
         public const string GrantTypeRefreshToken = "refresh_token";
 
         public OAuth2Resource AuthToken { get; private set; }
+
+        /// <summary>
+        /// The default API client for making HTTP calls.
+        /// </summary>
+        public static KnetikClient DefaultClient { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="KnetikClient" /> class.
@@ -56,7 +67,7 @@ namespace {{packageName}}.Client
         /// <param name="fileParams">File parameters.</param>
         /// <param name="authSettings">Authentication settings.</param>
         /// <returns>Object</returns>
-        public System.Object CallApi(string path, RestSharp.Method method, Dictionary<string, string> queryParams, string postBody,
+        public Object CallApi(string path, Method method, Dictionary<string, string> queryParams, string postBody,
             Dictionary<string, string> headerParams, Dictionary<string, string> formParams, 
             Dictionary<string, FileParameter> fileParams, string[] authSettings)
         {
@@ -99,7 +110,7 @@ namespace {{packageName}}.Client
                 request.AddParameter("application/json", postBody, ParameterType.RequestBody);
             }
 
-            return (System.Object)mRestClient.Execute(request);
+            return mRestClient.Execute(request);
         }
 
         /// <summary>
@@ -117,7 +128,7 @@ namespace {{packageName}}.Client
                 // Defaults to an ISO 8601, using the known as a Round-trip date/time pattern ("o")
                 // https://msdn.microsoft.com/en-us/library/az4se3k1(v=vs.110).aspx#Anchor_8
                 // For example: 2009-06-15T13:45:30.0000000
-                return ((DateTime)obj).ToString(KnetikConfiguration.DateTimeFormat);
+                return ((DateTime)obj).ToString(DateTimeFormat);
             }
             else if (obj is List<string>)
             {
@@ -128,7 +139,7 @@ namespace {{packageName}}.Client
                 return Convert.ToString(obj);
             }
         }
-    
+
         /// <summary>
         /// Deserialize the JSON string into a proper object.
         /// </summary>
@@ -136,20 +147,18 @@ namespace {{packageName}}.Client
         /// <param name="type">Object type.</param>
         /// <param name="headers">HTTP headers.</param>
         /// <returns>Object representation of the JSON string.</returns>
-        public object Deserialize(string content, Type type, IList<Parameter> headers=null)
+        public object Deserialize(string content, Type type, IList<Parameter> headers)
         {
-            if (type == typeof(System.Object)) // return an object
+            if (type == typeof(Object)) // return an object
             {
                 return content;
             }
 
             if (type == typeof(Stream))
             {
-                string filePath = string.IsNullOrEmpty(KnetikConfiguration.TempFolderPath)
-                    ? Path.GetTempPath()
-                    : KnetikConfiguration.TempFolderPath;
+                string filePath = Application.temporaryCachePath;
+                string fileName = Path.Combine(filePath, Guid.NewGuid().ToString());
 
-                string fileName = filePath + Guid.NewGuid();
                 if (headers != null)
                 {
                     Regex regex = new Regex(@"Content-Disposition:.*filename=['""]?([^'""\s]+)['""]?$");
@@ -166,7 +175,7 @@ namespace {{packageName}}.Client
 
             if (type.Name.StartsWith("System.Nullable`1[[System.DateTime")) // return a datetime object
             {
-                return DateTime.Parse(content,  null, System.Globalization.DateTimeStyles.RoundtripKind);
+                return DateTime.Parse(content,  null, DateTimeStyles.RoundtripKind);
             }
 
             if (type == typeof(string) || type.Name.StartsWith("System.Nullable")) // return primitive type
@@ -184,7 +193,7 @@ namespace {{packageName}}.Client
                 throw new KnetikException(500, e.Message);
             }
         }
-    
+
         /// <summary>
         /// Serialize an object into JSON string.
         /// </summary>
@@ -239,14 +248,14 @@ namespace {{packageName}}.Client
         /// <param name="fromObject">Object to be casted</param>
         /// <param name="toObject">Target type</param>
         /// <returns>Casted object</returns>
-        public static System.Object ConvertType(System.Object fromObject, Type toObject)
+        public static Object ConvertType(Object fromObject, Type toObject)
         {
             return Convert.ChangeType(fromObject, toObject);
         }
 
         private void Awake()
         {
-            KnetikConfiguration.DefaultClient = this;
+            DefaultClient = this;
 
             // Load project settings
             mProjectSettings = KnetikProjectSettings.Load();
@@ -271,6 +280,8 @@ namespace {{packageName}}.Client
                 KnetikLogger.LogError("You must set up the base URL in the editor window!");
                 return;
             }
+
+            mRestClient = new RestClient(mProjectSettings.BaseUrl);
 
             mAccessTokenApi = new AccessTokenApi();
             mAccessTokenApi.GetOAuthTokenComplete += GetOAuthTokenComplete;
@@ -322,7 +333,7 @@ namespace {{packageName}}.Client
 
         private void GrantUserPassword()
         {
-            if (string.IsNullOrEmpty(mUserCredentials.UserId) || string.IsNullOrEmpty(mUserCredentials.Password))
+            if ((mUserCredentials == null) || string.IsNullOrEmpty(mUserCredentials.UserId) || string.IsNullOrEmpty(mUserCredentials.Password))
             {
                 KnetikLogger.LogError("User credentials are not configured properly - please set them up in the editor window!");
                 return;
@@ -347,7 +358,7 @@ namespace {{packageName}}.Client
         /// <summary>
         /// Handle MONO's incomplete certificate support: http://www.mono-project.com/archived/usingtrustedrootsrespectfully/
         /// </summary>
-        private static bool RemoteCertificateValidationCallback(System.Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        private static bool RemoteCertificateValidationCallback(Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
             bool isOk = true;
 
@@ -377,6 +388,34 @@ namespace {{packageName}}.Client
             }
 
             return isOk;
+        }
+        /// <summary>
+        /// Gets or sets the the date time format used when serializing in the KnetikClient
+        /// By default, it's set to ISO 8601 - "o", for others see:
+        /// https://msdn.microsoft.com/en-us/library/az4se3k1(v=vs.110).aspx
+        /// and https://msdn.microsoft.com/en-us/library/8kb3ddd4(v=vs.110).aspx
+        /// No validation is done to ensure that the string you're providing is valid
+        /// </summary>
+        /// <value>The DateTimeFormat string</value>
+        public static string DateTimeFormat
+        {
+            get
+            {
+                return mDateTimeFormat;
+            }
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    // Never allow a blank or null string, go back to the default
+                    mDateTimeFormat = IsoDatetimeFormat;
+                    return;
+                }
+
+                // Caution, no validation when you choose date time format other than ISO 8601
+                // Take a look at the above links
+                mDateTimeFormat = value;
+            }
         }
     }
 }

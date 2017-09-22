@@ -34,6 +34,7 @@ namespace {{packageName}}.Api
         {{/operation}}
     }
   
+    /// <inheritdoc />
     /// <summary>
     /// Represents a collection of functions to interact with the API endpoints
     /// </summary>
@@ -63,19 +64,13 @@ namespace {{packageName}}.Api
         /// <returns></returns>
         public {{classname}}()
         {
-            KnetikClient = KnetikConfiguration.DefaultClient;
             {{#operation}}
-            m{{nickname}}Coroutine = new KnetikCoroutine(KnetikClient);
+            m{{nickname}}Coroutine = new KnetikCoroutine(KnetikClient.DefaultClient);
             {{/operation}}
         }
     
-        /// <summary>
-        /// Gets the Knetik client.
-        /// </summary>
-        /// <value>An instance of the KnetikClient</value>
-        public KnetikClient KnetikClient { get; private set; }
-
         {{#operation}}
+        /// <inheritdoc />
         /// <summary>
         /// {{summary}} {{notes}}
         /// </summary>
@@ -95,7 +90,7 @@ namespace {{packageName}}.Api
             {
                 m{{nickname}}Path = m{{nickname}}Path.Replace("{format}", "json");
             }
-            {{#pathParams}}m{{nickname}}Path = m{{nickname}}Path.Replace("{" + "{{baseName}}" + "}", KnetikClient.ParameterToString({{{paramName}}}));
+            {{#pathParams}}m{{nickname}}Path = m{{nickname}}Path.Replace("{" + "{{baseName}}" + "}", KnetikClient.DefaultClient.ParameterToString({{{paramName}}}));
             {{/pathParams}}
 
             Dictionary<string, string> queryParams = new Dictionary<string, string>();
@@ -107,26 +102,26 @@ namespace {{packageName}}.Api
             {{#queryParams}}
             if ({{paramName}} != null)
             {
-                queryParams.Add("{{baseName}}", KnetikClient.ParameterToString({{paramName}}));
+                queryParams.Add("{{baseName}}", KnetikClient.DefaultClient.ParameterToString({{paramName}}));
             }
 
             {{/queryParams}}
             {{#headerParams}}
             if ({{paramName}} != null)
             {
-                headerParams.Add("{{baseName}}", KnetikClient.ParameterToString({{paramName}}));
+                headerParams.Add("{{baseName}}", KnetikClient.DefaultClient.ParameterToString({{paramName}}));
             }			
 
             {{/headerParams}}
             {{#formParams}}
             if ({{paramName}} != null)
             {
-                {{#isFile}}fileParams.Add("{{baseName}}", KnetikClient.ParameterToFile("{{baseName}}", {{paramName}}));{{/isFile}}{{^isFile}}formParams.Add("{{baseName}}", KnetikClient.ParameterToString({{paramName}})); // form parameter{{/isFile}}
+                {{#isFile}}fileParams.Add("{{baseName}}", KnetikClient.DefaultClient.ParameterToFile("{{baseName}}", {{paramName}}));{{/isFile}}{{^isFile}}formParams.Add("{{baseName}}", KnetikClient.DefaultClient.ParameterToString({{paramName}})); // form parameter{{/isFile}}
             }			
 
             {{/formParams}}
             {{#bodyParam}}
-            postBody = KnetikClient.Serialize({{paramName}}); // http body (model) parameter
+            postBody = KnetikClient.DefaultClient.Serialize({{paramName}}); // http body (model) parameter
  
             {{/bodyParam}}
             // authentication setting, if any
@@ -152,7 +147,7 @@ namespace {{packageName}}.Api
             }
 
             {{#returnType}}
-            {{nickname}}Data = ({{{returnType}}}) KnetikClient.Deserialize(response.Content, typeof({{{returnType}}}), response.Headers);
+            {{nickname}}Data = ({{{returnType}}}) KnetikClient.DefaultClient.Deserialize(response.Content, typeof({{{returnType}}}), response.Headers);
             KnetikLogger.LogResponse(m{{nickname}}StartTime, m{{nickname}}Path, string.Format("Response received successfully:\n{0}", {{nickname}}Data.ToString()));
 
             if ({{nickname}}Complete != null)
