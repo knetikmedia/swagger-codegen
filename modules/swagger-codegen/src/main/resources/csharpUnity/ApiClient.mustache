@@ -133,6 +133,31 @@ namespace {{packageName}}.Client
             }
         }
 
+        public void AuthenticateWithToken(KnetikTokenCredentials tokenCredentials)
+        {
+            if (tokenCredentials == null)
+            {
+                KnetikLogger.LogError("The 'tokenCredentials' cannot be null!");
+                return;
+            }
+
+            if (!tokenCredentials.IsConfigured)
+            {
+                KnetikLogger.LogError("The token credentials are not configured properly.  Please set the token from the auth provider correctly.");
+                return;
+            }
+
+            try
+            {
+                // Get access token
+                mAccessTokenApi.GetOAuthToken(tokenCredentials.GrantType, mProjectSettings.ClientId, null, null, null, tokenCredentials.Token, null);
+            }
+            catch (KnetikException)
+            {
+                // Error is already logged
+            }
+        }
+
         /// <summary>
         /// Make a synchronous HTTP request.
         /// </summary>
