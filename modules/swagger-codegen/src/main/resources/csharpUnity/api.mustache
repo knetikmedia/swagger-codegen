@@ -65,7 +65,7 @@ namespace {{packageName}}.Api
         public {{classname}}()
         {
             {{#operation}}
-            m{{nickname}}Coroutine = new KnetikCoroutine(KnetikClient.DefaultClient);
+            m{{nickname}}Coroutine = new KnetikCoroutine();
             {{/operation}}
         }
     

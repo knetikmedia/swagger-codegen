@@ -7,6 +7,7 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using {{packageName}}.Api;
+using {{packageName}}.Credentials;
 using {{packageName}}.Model;
 using {{packageName}}.Utils;
 using Newtonsoft.Json;
@@ -24,8 +25,6 @@ namespace {{packageName}}.Client
     public class KnetikClient  : MonoBehaviour
     {
         private KnetikProjectSettings mProjectSettings;
-        private KnetikUserCredentials mUserCredentials;
-
         private readonly Dictionary<string, string> mDefaultHeaderMap = new Dictionary<string, string>();
         private static string mDateTimeFormat = IsoDatetimeFormat;
 
@@ -40,12 +39,41 @@ namespace {{packageName}}.Client
         public const string GrantTypeGoogle = "google";
         public const string GrantTypeRefreshToken = "refresh_token";
 
-        public OAuth2Resource AuthToken { get; private set; }
-
         /// <summary>
         /// The default API client for making HTTP calls.
         /// </summary>
         public static KnetikClient DefaultClient { get; private set; }
+
+        public OAuth2Resource AuthToken { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the the date time format used when serializing in the KnetikClient
+        /// By default, it's set to ISO 8601 - "o", for others see:
+        /// https://msdn.microsoft.com/en-us/library/az4se3k1(v=vs.110).aspx
+        /// and https://msdn.microsoft.com/en-us/library/8kb3ddd4(v=vs.110).aspx
+        /// No validation is done to ensure that the string you're providing is valid
+        /// </summary>
+        /// <value>The DateTimeFormat string</value>
+        public static string DateTimeFormat
+        {
+            get
+            {
+                return mDateTimeFormat;
+            }
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    // Never allow a blank or null string, go back to the default
+                    mDateTimeFormat = IsoDatetimeFormat;
+                    return;
+                }
+
+                // Caution, no validation when you choose date time format other than ISO 8601
+                // Take a look at the above links
+                mDateTimeFormat = value;
+            }
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="KnetikClient" /> class.
@@ -53,6 +81,56 @@ namespace {{packageName}}.Client
         public KnetikClient()
         {
             ServicePointManager.ServerCertificateValidationCallback = RemoteCertificateValidationCallback;
+        }
+
+        public void AuthenticateWithUserCredentials(KnetikUserCredentials userCredentials)
+        {
+            if (userCredentials == null)
+            {
+                KnetikLogger.LogError("The 'userCredentials' cannot be null!");
+                return;
+            }
+
+            if (!userCredentials.IsConfigured)
+            {
+                KnetikLogger.LogError("The user credentials are not configured properly.  Please set them up in the editor window!");
+                return;
+            }
+
+            try
+            {
+                // Get access token
+                mAccessTokenApi.GetOAuthToken(userCredentials.GrantType, mProjectSettings.ClientId, null, userCredentials.UserId, userCredentials.Password, null, null);
+            }
+            catch (KnetikException)
+            {
+                // Error is already logged
+            }
+        }
+
+        public void AuthenticateWithClientCredentials(KnetikClientCredentials clientCredentials)
+        {
+            if (clientCredentials == null)
+            {
+                KnetikLogger.LogError("The 'clientCredentials' cannot be null!");
+                return;
+            }
+
+            if (!clientCredentials.IsConfigured)
+            {
+                KnetikLogger.LogError("The client credentials are not configured properly.  Please set them up in the editor window!");
+                return;
+            }
+
+            try
+            {
+                // Get access token
+                mAccessTokenApi.GetOAuthToken(clientCredentials.GrantType, mProjectSettings.ClientId, clientCredentials.ClientSecret, null, null, null, null);
+            }
+            catch (KnetikException)
+            {
+                // Error is already logged
+            }
         }
 
         /// <summary>
@@ -255,20 +333,8 @@ namespace {{packageName}}.Client
 
         private void Awake()
         {
-            DefaultClient = this;
-
             // Load project settings
             mProjectSettings = KnetikProjectSettings.Load();
-
-            // Load optional user credentials
-            mUserCredentials = KnetikUserCredentials.Load();
-        }
-
-        /// <summary>
-        /// Initialize the Knetik Cloud client when the corresponding game object is initialized
-        /// </summary>
-        private void OnEnable()
-        {
             if (mProjectSettings == null)
             {
                 KnetikLogger.LogError("Unable to load project settings - please set them up in the editor window!");
@@ -285,74 +351,30 @@ namespace {{packageName}}.Client
 
             mAccessTokenApi = new AccessTokenApi();
             mAccessTokenApi.GetOAuthTokenComplete += GetOAuthTokenComplete;
+            DefaultClient = this;
 
-            // Attempt to login
-            switch (mProjectSettings.GrantType)
-            {
-                case GrantTypeClientCredentials:
-                    GrantClientCredentials();
-                    break;
+            KnetikGlobalEventSystem.Subscribe<KnetikClientReadyRequestEvent>(OnClientReadyRequest);
 
-                case GrantTypeUserPassword:
-                    GrantUserPassword();
-                    break;
-
-                case GrantTypeFacebook:
-                case GrantTypeGoogle:
-                case GrantTypeRefreshToken:
-                default:
-                    KnetikLogger.LogError(string.Format("Unrecognized 'grant_type' - please verify that you have selected either '{0}' or '{1}'.  '{2}', '{3}', and '{4}' are currently not supported by the default client.",
-                        GrantTypeClientCredentials, GrantTypeUserPassword, GrantTypeFacebook, GrantTypeGoogle, GrantTypeRefreshToken));
-                    break;
-            }
+            KnetikGlobalEventSystem.Publish(KnetikClientReadyResponseEvent.GetInstance(null, true));
         }
 
-        private void OnDisable()
+        private void OnDestroy()
         {
+            KnetikGlobalEventSystem.Unsubscribe<KnetikClientReadyRequestEvent>(OnClientReadyRequest);
+
             mAccessTokenApi = null;
-        }
-
-        private void GrantClientCredentials()
-        {
-            if (string.IsNullOrEmpty(mProjectSettings.ClientSecret))
-            {
-                KnetikLogger.LogError("The 'client secret' is not configured properly - please set it in the editor window!");
-                return;
-            }
-
-            try
-            {
-                // Get access token
-                mAccessTokenApi.GetOAuthToken(mProjectSettings.GrantType, mProjectSettings.ClientId, mProjectSettings.ClientSecret, null, null, null, null);
-            }
-            catch (KnetikException)
-            {
-                // Error is already logged
-            }
-        }
-
-        private void GrantUserPassword()
-        {
-            if ((mUserCredentials == null) || string.IsNullOrEmpty(mUserCredentials.UserId) || string.IsNullOrEmpty(mUserCredentials.Password))
-            {
-                KnetikLogger.LogError("User credentials are not configured properly - please set them up in the editor window!");
-                return;
-            }
-
-            try
-            {
-                // Get access token
-                mAccessTokenApi.GetOAuthToken(mProjectSettings.GrantType, mProjectSettings.ClientId, null, mUserCredentials.UserId, mUserCredentials.Password, null, null);
-            }
-            catch (KnetikException)
-            {
-                // Error is already logged
-            }
+            DefaultClient = null;
         }
 
         private void GetOAuthTokenComplete(OAuth2Resource response)
         {
             AuthToken = response;
+            KnetikGlobalEventSystem.Publish(KnetikClientAuthenticatedEvent.GetInstance(AuthToken));
+        }
+
+        private static void OnClientReadyRequest(KnetikClientReadyRequestEvent e)
+        {
+            KnetikGlobalEventSystem.Publish(KnetikClientReadyResponseEvent.GetInstance(e.Requester, (DefaultClient != null)));
         }
 
         /// <summary>
@@ -388,34 +410,6 @@ namespace {{packageName}}.Client
             }
 
             return isOk;
-        }
-        /// <summary>
-        /// Gets or sets the the date time format used when serializing in the KnetikClient
-        /// By default, it's set to ISO 8601 - "o", for others see:
-        /// https://msdn.microsoft.com/en-us/library/az4se3k1(v=vs.110).aspx
-        /// and https://msdn.microsoft.com/en-us/library/8kb3ddd4(v=vs.110).aspx
-        /// No validation is done to ensure that the string you're providing is valid
-        /// </summary>
-        /// <value>The DateTimeFormat string</value>
-        public static string DateTimeFormat
-        {
-            get
-            {
-                return mDateTimeFormat;
-            }
-            set
-            {
-                if (string.IsNullOrEmpty(value))
-                {
-                    // Never allow a blank or null string, go back to the default
-                    mDateTimeFormat = IsoDatetimeFormat;
-                    return;
-                }
-
-                // Caution, no validation when you choose date time format other than ISO 8601
-                // Take a look at the above links
-                mDateTimeFormat = value;
-            }
         }
     }
 }
