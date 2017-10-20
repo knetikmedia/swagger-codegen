@@ -354,7 +354,7 @@ echo "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://ww
   <parent>
     <groupId>com.knetikcloud</groupId>
     <artifactId>knetikcloud-java-client-base</artifactId>
-    <version>3.0.7</version>
+    <version>$VERSION_NUMBER</version>
   </parent>
     <modelVersion>4.0.0</modelVersion>
   <artifactId>knetikcloud-java-client</artifactId>
