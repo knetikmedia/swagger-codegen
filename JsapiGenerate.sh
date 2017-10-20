@@ -348,6 +348,48 @@ java -jar $BASE_JAR generate -i $JSON_FILE -DinvokerPackage="com.knetikcloud.cli
 cd sdk/java
 
 sed -i -e 's~'"$README_ORIGINAL"'~'"$README_REPLACEMENT"'~g' README.md
+sed -i -e 's~<packaging>jar</packaging>~<packaging>pom</packaging>~g' pom.xml
+echo "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
+  xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd\">
+  <parent>
+    <groupId>com.knetikcloud</groupId>
+    <artifactId>knetikcloud-java-client-base</artifactId>
+    <version>3.0.7</version>
+  </parent>
+    <modelVersion>4.0.0</modelVersion>
+  <artifactId>knetikcloud-java-client</artifactId>
+  <packaging>jar</packaging>
+  
+  <build>
+  <finalName>\${artifactId}</finalName>
+		<extensions>
+			<extension>
+                <groupId>org.springframework.build</groupId>
+                <artifactId>aws-maven</artifactId>
+                <version>5.0.0.RELEASE</version>
+            </extension>
+		</extensions>
+  </build>
+  
+  <distributionManagement>
+		<snapshotRepository>
+			<id>knetik-maven-repo</id>
+			<url>s3://knetik-maven-repository/snapshot</url>
+		</snapshotRepository>
+		<repository>
+			<id>knetik-maven-repo</id>
+			<url>s3://knetik-maven-repository/release</url>
+		</repository>
+	</distributionManagement>
+
+	<repositories>
+		<repository>
+			<id>knetik-maven-repo</id>
+			<url>s3://knetik-maven-repository/release</url>
+		</repository>
+	</repositories>
+  
+</project>" > deployable.xml
 
 git add -A
 git commit -m "JSAPI Java API update"
