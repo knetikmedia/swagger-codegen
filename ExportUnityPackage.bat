@@ -1,0 +1,1 @@
+"C:\Program Files\Unity\Editor\Unity.exe" -batchMode -quit -logFile D:\Projects\Knetik\KnetikCloudPackageLog.txt -projectName D:\Projects\Knetik\knetikcloud-unity-sdk\ -executeMethod KnetikCloudBuild.KnetikPackageExporter.Process -outputPath D:\Projects\Knetik\KnetikCloudSDK.unitypackage
