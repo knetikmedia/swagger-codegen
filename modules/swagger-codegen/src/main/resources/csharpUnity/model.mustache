@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using {{packageName}}.Attributes;
+using {{packageName}}.Serialization;
 using Newtonsoft.Json;
 
 {{#models}}
@@ -12,6 +14,9 @@ namespace {{packageName}}.Model
     /// <summary>
     /// {{description}}
     /// </summary>
+    {{#parent}}
+    [KnetikFactory ("{{vendorExtensions.x-discriminator-value}}")]
+    {{/parent}}
     public class {{classname}}{{#parent}} : {{{parent}}}{{/parent}}
     {
         {{#vars}}
@@ -20,7 +25,7 @@ namespace {{packageName}}.Model
         /// </summary>{{#description}}
         /// <value>{{{description}}}</value>{{/description}}
         [JsonProperty(PropertyName = "{{baseName}}")]
-        public {{{datatype}}} {{name}} { get; set; }
+        public {{{datatype}}} {{name}};
 
         {{/vars}}
         /// <inheritdoc />
@@ -43,7 +48,7 @@ namespace {{packageName}}.Model
         /// Get the JSON string presentation of the object
         /// </summary>
         /// <returns>JSON string presentation of the object</returns>
-        public {{#parent}} new {{/parent}}string ToJson()
+        public {{#parent}}new {{/parent}}string ToJson()
         {
             return JsonConvert.SerializeObject(this, Formatting.Indented);
         }

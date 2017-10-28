@@ -125,7 +125,7 @@ namespace {{packageName}}.Api
  
             {{/bodyParam}}
             // authentication setting, if any
-            string[] authSettings = new string[] { {{#authMethods}} "{{name}}"{{#hasMore}},{{/hasMore}}{{/authMethods}} };
+            List<string> authSettings = new List<string> { {{#authMethods}}"{{name}}"{{#hasMore}}, {{/hasMore}}{{/authMethods}} };
 
             m{{nickname}}StartTime = DateTime.Now;
             KnetikLogger.LogRequest(m{{nickname}}StartTime, m{{nickname}}Path, "Sending server request...");
