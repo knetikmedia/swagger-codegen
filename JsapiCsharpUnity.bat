@@ -6,7 +6,6 @@ SET VERSION_NUMBER=3.0.7
 SET ID_FLAGS=--group-id com.knetikcloud --artifact-version %VERSION_NUMBER% -DprojectVersion=%VERSION_NUMBER%
 
 SET MODULES_FOLDER=%~dp0modules
-SET UNITY_TEMPLATE_FOLDER=modules\swagger-codegen\src\main\resources\csharpUnity
 SET SDK_FOLDER=%~dp0sdk
 
 SET OUT_FOLDER=%SDK_FOLDER%\csharp-unity
@@ -26,7 +25,7 @@ mkdir "%SDK_FOLDER%\"
 mkdir "%OUT_FOLDER%\"
 
 REM Generate code
-java -jar "%MODULES_FOLDER%\swagger-codegen-cli\target\swagger-codegen-cli.jar" generate -i "%JSON_FILE%" -l CsharpUnity -t "%UNITY_TEMPLATE_FOLDER%" -DpackageName="com.knetikcloud" %ID_FLAGS% --artifact-id knetikcloud-csharp-unity-client -o "%OUT_FOLDER%"
+java -jar "%MODULES_FOLDER%\swagger-codegen-cli\target\swagger-codegen-cli.jar" generate -i "%JSON_FILE%" -l CsharpUnity -DpackageName="com.knetikcloud" %ID_FLAGS% --artifact-id knetikcloud-csharp-unity-client -o "%OUT_FOLDER%"
 
 mkdir "%UNITY_FOLDER%\"
 mkdir "%UNITY_ASSETS_FOLDER%\"
