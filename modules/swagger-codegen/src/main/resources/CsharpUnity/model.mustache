@@ -38,9 +38,9 @@ namespace {{packageName}}.Model
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("class {{classname}} {\n");
-            {{#vars}}
+            {{#allVars}}
             sb.Append("  {{name}}: ").Append({{name}}).Append("\n");
-            {{/vars}}
+            {{/allVars}}
             sb.Append("}\n");
             return sb.ToString();
         }
