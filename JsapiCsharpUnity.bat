@@ -46,8 +46,7 @@ XCOPY "%VENDOR_FOLDER%\RestSharp-Unity-NET-2.0.105.1\lib\net20\RestSharp.dll" "%
 XCOPY "%VENDOR_FOLDER%\Unity.Newtonsoft.Json.7.0.0.0\lib\net35-Client\Unity.Newtonsoft.Json.dll" "%UNITY_PLUGIN_FOLDER%\" /S /Y
 rd /S /Q "%VENDOR_FOLDER%\"
 
-REM Remove the mono script/ configuration
-del /F "%OUT_FOLDER%\compile-mono.sh"
+REM Remove unneccessary files
 del /F "%UNITY_KNETIK_FOLDER%\Client\Configuration.cs"
 
 REM Rename the client classes to be more unique within the context of a Unity project
