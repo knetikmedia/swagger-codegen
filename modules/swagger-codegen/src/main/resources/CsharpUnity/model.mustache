@@ -14,9 +14,7 @@ namespace {{packageName}}.Model
     /// <summary>
     /// {{description}}
     /// </summary>
-    {{#parent}}
-    [KnetikFactory ("{{vendorExtensions.x-discriminator-value}}")]
-    {{/parent}}
+    {{#parent}}[KnetikFactory ("{{vendorExtensions.x-discriminator-value}}")]{{/parent}}
     {{#discriminator}}[JsonConverter(typeof(KnetikJsonConverter<{{classname}}>))]{{/discriminator}}
     public class {{classname}}{{#parent}} : {{{parent}}}{{/parent}}
     {
