@@ -14,7 +14,7 @@ namespace {{packageName}}.Model
     /// <summary>
     /// {{description}}
     /// </summary>
-    {{#parent}}[KnetikFactory ("{{vendorExtensions.x-discriminator-value}}")]{{/parent}}
+    {{#vendorExtensions.x-discriminator-value}}[KnetikFactory ("{{vendorExtensions.x-discriminator-value}}")]{{/vendorExtensions.x-discriminator-value}}
     {{#discriminator}}[JsonConverter(typeof(KnetikJsonConverter<{{classname}}>))]{{/discriminator}}
     public class {{classname}}{{#parent}} : {{{parent}}}{{/parent}}
     {
@@ -47,7 +47,7 @@ namespace {{packageName}}.Model
         /// Get the JSON string presentation of the object
         /// </summary>
         /// <returns>JSON string presentation of the object</returns>
-        public {{#parent}}new {{/parent}}string ToJson()
+        public {{#vendorExtensions.x-discriminator-value}}new {{/vendorExtensions.x-discriminator-value}}string ToJson()
         {
             return JsonConvert.SerializeObject(this, Formatting.Indented);
         }
