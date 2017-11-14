@@ -34,6 +34,9 @@ README_REPLACEMENT+="Use the provided access_token in sub-sequent requests to au
 
 ID_FLAGS="--group-id com.knetikcloud --artifact-version $VERSION_NUMBER -DprojectVersion=$VERSION_NUMBER"
 
+SDK_DIR=../../../knetikcloud-unity-sdk
+#SDK_DIR=/DEV/splyt/splyt-unity-client
+
 mkdir -p sdk
 chmod 777 sdk
 
@@ -51,12 +54,12 @@ sed -i -e 's~'"$README_ORIGINAL"'~'"$README_REPLACEMENT"'~g' README.md
 mv src/main/CsharpUnity/com/knetikcloud/Client/ApiClient.cs src/main/CsharpUnity/com/knetikcloud/Client/KnetikClient.cs
 mv src/main/CsharpUnity/com/knetikcloud/Client/ApiException.cs src/main/CsharpUnity/com/knetikcloud/Client/KnetikException.cs
 
-../../JsapiUnityFilesSynch.sh src/main/CsharpUnity/com/knetikcloud/Api ../../../knetikcloud-unity-sdk/Assets/ThirdParty/KnetikCloud/Api
-../../JsapiUnityFilesSynch.sh src/main/CsharpUnity/com/knetikcloud/Client ../../../knetikcloud-unity-sdk/Assets/ThirdParty/KnetikCloud/Client
-../../JsapiUnityFilesSynch.sh src/main/CsharpUnity/com/knetikcloud/Model ../../../knetikcloud-unity-sdk/Assets/ThirdParty/KnetikCloud/Model
+../../JsapiUnityFilesSynch.sh src/main/CsharpUnity/com/knetikcloud/Api $SDK_DIR/Assets/ThirdParty/KnetikCloud/Api
+../../JsapiUnityFilesSynch.sh src/main/CsharpUnity/com/knetikcloud/Client $SDK_DIR/Assets/ThirdParty/KnetikCloud/Client
+../../JsapiUnityFilesSynch.sh src/main/CsharpUnity/com/knetikcloud/Model $SDK_DIR/Assets/ThirdParty/KnetikCloud/Model
 
-cp vendor/packages.config ../../../knetikcloud-unity-sdk/vendor
-pushd ../../../knetikcloud-unity-sdk/
+cp vendor/packages.config $SDK_DIR/vendor
+pushd $SDK_DIR/
 ./compile-unity.sh
 popd
 
