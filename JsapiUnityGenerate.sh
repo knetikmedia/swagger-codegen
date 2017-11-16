@@ -58,6 +58,10 @@ mv src/main/CsharpUnity/com/knetikcloud/Client/ApiException.cs src/main/CsharpUn
 ../../JsapiUnityFilesSynch.sh src/main/CsharpUnity/com/knetikcloud/Client $SDK_DIR/Assets/ThirdParty/KnetikCloud/Client
 ../../JsapiUnityFilesSynch.sh src/main/CsharpUnity/com/knetikcloud/Model $SDK_DIR/Assets/ThirdParty/KnetikCloud/Model
 
+cp README.md $SDK_DIR/
+rm $SDK_DIR/docs/*
+cp docs/* $SDK_DIR/docs/
+
 cp vendor/packages.config $SDK_DIR/vendor
 pushd $SDK_DIR/
 ./compile-unity.sh
