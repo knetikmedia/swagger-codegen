@@ -1,1 +1,0 @@
-"C:\Program Files\Unity\Editor\Unity.exe" -batchMode -quit -logFile D:\Projects\Knetik\SplytAnalyticsPackageLog.txt -projectName D:\Projects\Knetik\splyt-analytics-unity-sdk\ -executeMethod KnetikBuild.SplytAnalyticsPackageExporter.Process -outputPath D:\Projects\Knetik\SplytAnalyticsSDK.unitypackage
