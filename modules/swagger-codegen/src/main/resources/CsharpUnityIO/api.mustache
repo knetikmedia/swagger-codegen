@@ -7,9 +7,6 @@ using KnetikUnity.Events;
 using KnetikUnity.Exceptions;
 using KnetikUnity.Utils;
 
-using Object = System.Object;
-using Version = {{packageName}}.Model.Version;
-
 namespace {{packageName}}.Api
 {
     {{#operations}}
@@ -105,18 +102,11 @@ namespace {{packageName}}.Api
             }
 
             {{/queryParams}}
-            {{#formParams}}
-            if ({{paramName}} != null)
-            {
-                {{#isFile}}mWebCallEvent.FileParams["{{baseName}}"] = KnetikClient.ParameterToFile("{{baseName}}", {{paramName}}));{{/isFile}}{{^isFile}}mWebCallEvent.QueryParams["{{baseName}}"] = KnetikClient.ParameterToString({{paramName}});{{/isFile}}
-            }
-
-            {{/formParams}}
             {{#headerParams}}
             if ({{paramName}} != null)
             {
-                mWebCallEvent.HeaderParams["{{baseName}}"] = KnetikClient.ParameterToString({{paramName}}));
-            }
+                mWebCallEvent.HeaderParams.Add("{{baseName}}", KnetikClient.ParameterToString({{paramName}}));
+            }			
             {{/headerParams}}
             {{#bodyParam}}
             mWebCallEvent.PostBody = KnetikClient.Serialize({{paramName}}); // http body (model) parameter
