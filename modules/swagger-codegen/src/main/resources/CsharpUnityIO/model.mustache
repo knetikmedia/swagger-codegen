@@ -1,0 +1,55 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+using KnetikUnity.Attributes;
+using KnetikUnity.Serialization;
+using Newtonsoft.Json;
+
+{{#models}}
+{{#model}}
+namespace {{packageName}}.Model
+{
+    /// <inheritdoc />
+    /// <summary>
+    /// {{description}}
+    /// </summary>
+    public class {{classname}}{{#parent}} : {{{parent}}}{{/parent}}
+    {
+        {{#vars}}
+        /// <summary>
+        /// {{^description}}Gets or Sets {{{name}}}{{/description}}{{#description}}{{{description}}}{{/description}}
+        /// </summary>{{#description}}
+        /// <value>{{{description}}}</value>{{/description}}
+        [JsonProperty(PropertyName = "{{baseName}}")]
+        public {{{datatype}}} {{name}};
+
+        {{/vars}}
+        /// <inheritdoc />
+        /// <summary>
+        /// Get the string presentation of the object
+        /// </summary>
+        /// <returns>String presentation of the object</returns>
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("class {{classname}} {\n");
+            {{#allVars}}
+            sb.Append("  {{name}}: ").Append({{name}}).Append("\n");
+            {{/allVars}}
+            sb.Append("}\n");
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Get the JSON string presentation of the object
+        /// </summary>
+        /// <returns>JSON string presentation of the object</returns>
+        public {{#vendorExtensions.x-discriminator-value}}new {{/vendorExtensions.x-discriminator-value}}string ToJson()
+        {
+            return JsonConvert.SerializeObject(this, Formatting.Indented);
+        }
+    }
+}
+{{/model}}
+{{/models}}

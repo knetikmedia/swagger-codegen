@@ -38,6 +38,7 @@ public class OnlineGeneratorOptionsTest {
                 {new AsyncScalaClientOptionsProvider()},
                 {new CSharpClientOptionsProvider()},
                 {new CsharpDotNet2ClientOptionsProvider()},
+                {new CsharpUnityClientOptionsProvider()},
                 {new DartClientOptionsProvider()},
                 {new FlashClienOptionsProvider()},
                 {new JavaInflectorServerOptionsProvider()},

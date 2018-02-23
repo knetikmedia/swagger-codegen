@@ -1,0 +1,157 @@
+using System;
+using System.Collections.Generic;
+{{#hasImport}}using {{packageName}}.Model;
+{{/hasImport}}
+using KnetikUnity.Client;
+using KnetikUnity.Events;
+using KnetikUnity.Exceptions;
+using KnetikUnity.Utils;
+
+namespace {{packageName}}.Api
+{
+    {{#operations}}
+    /// <summary>
+    /// Represents a collection of functions to interact with the API endpoints
+    /// </summary>
+    public interface I{{classname}}
+    {
+        {{#operation}}
+        {{#returnType}}{{{returnType}}} {{nickname}}Data { get; }{{/returnType}}
+
+        /// <summary>
+        /// {{summary}} {{notes}}
+        /// </summary>
+        {{#allParams}}
+        /// <param name="{{paramName}}">{{description}}</param>
+        {{/allParams}}            
+        void {{nickname}}({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+
+        {{/operation}}
+    }
+  
+    /// <inheritdoc />
+    /// <summary>
+    /// Represents a collection of functions to interact with the API endpoints
+    /// </summary>
+    public class {{classname}} : I{{classname}}
+    {
+        private readonly KnetikWebCallEvent mWebCallEvent = new KnetikWebCallEvent();
+
+        {{#operation}}
+        private readonly KnetikResponseContext m{{nickname}}ResponseContext;
+        private DateTime m{{nickname}}StartTime;
+        {{/operation}}
+
+        {{#operation}}
+        {{#returnType}}
+        public {{{returnType}}} {{nickname}}Data { get; private set; }
+        public delegate void {{nickname}}CompleteDelegate(long responseCode, {{{returnType}}} response);
+        public {{nickname}}CompleteDelegate {{nickname}}Complete;
+        {{/returnType}}
+        {{^returnType}}
+        public delegate void {{nickname}}CompleteDelegate(long responseCode);
+        public {{nickname}}CompleteDelegate {{nickname}}Complete;
+        {{/returnType}}
+
+        {{/operation}}
+        /// <summary>
+        /// Initializes a new instance of the <see cref="{{classname}}"/> class.
+        /// </summary>
+        /// <returns></returns>
+        public {{classname}}()
+        {
+            {{#operation}}
+            m{{nickname}}ResponseContext = new KnetikResponseContext();
+            m{{nickname}}ResponseContext.ResponseReceived += On{{nickname}}Response;
+            {{/operation}}
+        }
+    
+        {{#operation}}
+        /// <inheritdoc />
+        /// <summary>
+        /// {{summary}} {{notes}}
+        /// </summary>
+        {{#allParams}}
+        /// <param name="{{paramName}}">{{description}}</param>
+        {{/allParams}}            
+        public void {{nickname}}({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
+        {
+            {{#allParams}}{{#required}}// verify the required parameter '{{paramName}}' is set
+            if ({{paramName}} == null)
+            {
+                throw new KnetikException(400, "Missing required parameter '{{paramName}}' when calling {{nickname}}");
+            }
+            {{/required}}{{/allParams}}
+            mWebCallEvent.WebPath = "{{{path}}}";
+            if (!string.IsNullOrEmpty(mWebCallEvent.WebPath))
+            {
+                mWebCallEvent.WebPath = mWebCallEvent.WebPath.Replace("{format}", "json");
+            }
+            {{#pathParams}}mWebCallEvent.WebPath = mWebCallEvent.WebPath.Replace("{" + "{{baseName}}" + "}", KnetikClient.ParameterToString({{{paramName}}}));
+            {{/pathParams}}
+
+            mWebCallEvent.HeaderParams.Clear();
+            mWebCallEvent.QueryParams.Clear();
+            mWebCallEvent.AuthSettings.Clear();
+            mWebCallEvent.PostBody = null;
+
+            {{#queryParams}}
+            if ({{paramName}} != null)
+            {
+                mWebCallEvent.QueryParams["{{baseName}}"] = KnetikClient.ParameterToString({{paramName}});
+            }
+
+            {{/queryParams}}
+            {{#headerParams}}
+            if ({{paramName}} != null)
+            {
+                mWebCallEvent.HeaderParams.Add("{{baseName}}", KnetikClient.ParameterToString({{paramName}}));
+            }			
+            {{/headerParams}}
+            {{#bodyParam}}
+            mWebCallEvent.PostBody = KnetikClient.Serialize({{paramName}}); // http body (model) parameter
+ 
+            {{/bodyParam}}
+            {{#authMethods}}
+            // authentication settings
+            mWebCallEvent.AuthSettings.Add("{{name}}");
+
+            {{/authMethods}}
+            // make the HTTP request
+            m{{nickname}}StartTime = DateTime.Now;
+            mWebCallEvent.Context = m{{nickname}}ResponseContext;
+            mWebCallEvent.RequestType = KnetikRequestType.{{httpMethod}};
+
+            KnetikLogger.LogRequest(m{{nickname}}StartTime, "{{nickname}}", "Sending server request...");
+            KnetikGlobalEventSystem.Publish(mWebCallEvent);
+        }
+
+        private void On{{nickname}}Response(KnetikRestResponse response)
+        {
+            if (!string.IsNullOrEmpty(response.Error))
+            {
+                throw new KnetikException("Error calling {{nickname}}: " + response.Error);
+            }
+
+            {{#returnType}}
+            {{nickname}}Data = ({{{returnType}}}) KnetikClient.Deserialize(response.Content, typeof({{{returnType}}}), response.Headers);
+            KnetikLogger.LogResponse(m{{nickname}}StartTime, "{{nickname}}", string.Format("Response received successfully:\n{0}", {{nickname}}Data));
+
+            if ({{nickname}}Complete != null)
+            {
+                {{nickname}}Complete(response.ResponseCode, {{nickname}}Data);
+            }
+            {{/returnType}}
+            {{^returnType}}
+            KnetikLogger.LogResponse(m{{nickname}}StartTime, "{{nickname}}", "Response received successfully.");
+            if ({{nickname}}Complete != null)
+            {
+                {{nickname}}Complete(response.ResponseCode);
+            }
+            {{/returnType}}
+        }
+
+        {{/operation}}
+    }
+    {{/operations}}
+}
