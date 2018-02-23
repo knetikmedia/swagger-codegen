@@ -13,6 +13,7 @@ DEV_NAME="Shawn Stout"
 DEV_EMAIL="admin@knetikcloud.com"
 DEV_ORG="Knetik"
 DEV_ORG_URL="knetikcloud.com"
+BRANCH="auto_gen"
 BR_2="\n  "
 BR_4="\n    "
 BR_6="\n      "
@@ -36,6 +37,20 @@ ID_FLAGS="--group-id com.knetikcloud --artifact-version $VERSION_NUMBER -Dprojec
 
 SDK_DIR=../../../knetikcloud-unity-sdk
 #SDK_DIR=/DEV/splyt/splyt-unity-client
+
+mkdir -p $SDK_DIR
+chmod 777 $SDK_DIR
+pushd $SDK_DIR
+git init
+git config user.name "$GIT_USERNAME"
+git config user.email "$GIT_EMAIL"
+git remote add origin git@github.com:knetikmedia/knetikcloud-unity-sdk.git
+git reset --hard
+git clean -f
+git checkout $BRANCH
+git pull origin $BRANCH
+rm -r *
+popd
 
 mkdir -p sdk
 chmod 777 sdk
@@ -61,10 +76,12 @@ mv src/main/CsharpUnity/com/knetikcloud/Client/ApiException.cs src/main/CsharpUn
 cp README.md $SDK_DIR/
 rm $SDK_DIR/docs/*
 cp docs/* $SDK_DIR/docs/
-
 cp vendor/packages.config $SDK_DIR/vendor
+
 pushd $SDK_DIR/
-./compile-unity.sh
+git add -A
+git commit -m "JSAPI Unity API update"
+git push -u origin $BRANCH
 popd
 
 cd ../..
