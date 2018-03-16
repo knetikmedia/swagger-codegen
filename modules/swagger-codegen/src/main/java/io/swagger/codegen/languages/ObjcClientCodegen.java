@@ -360,7 +360,7 @@ public class ObjcClientCodegen extends DefaultCodegen implements CodegenConfig {
                         return getSwaggerType(p) + "<NSString*, " + innerTypeDeclaration + "*>*";
                     }
                 }
-                return getSwaggerType(p) + "<" + innerTypeDeclaration + ">*";
+                return getSwaggerType(p) + "*";
             }
         } else {
             String swaggerType = getSwaggerType(p);
