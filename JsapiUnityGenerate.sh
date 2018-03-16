@@ -69,6 +69,8 @@ sed -i -e 's~'"$README_ORIGINAL"'~'"$README_REPLACEMENT"'~g' README.md
 mv src/main/CsharpUnity/com/knetikcloud/Client/ApiClient.cs src/main/CsharpUnity/com/knetikcloud/Client/KnetikClient.cs
 mv src/main/CsharpUnity/com/knetikcloud/Client/ApiException.cs src/main/CsharpUnity/com/knetikcloud/Client/KnetikException.cs
 
+chmod +x ../../JsapiUnityFilesSynch.sh
+
 ../../JsapiUnityFilesSynch.sh src/main/CsharpUnity/com/knetikcloud/Api $SDK_DIR/Assets/ThirdParty/KnetikCloud/Api
 ../../JsapiUnityFilesSynch.sh src/main/CsharpUnity/com/knetikcloud/Client $SDK_DIR/Assets/ThirdParty/KnetikCloud/Client
 ../../JsapiUnityFilesSynch.sh src/main/CsharpUnity/com/knetikcloud/Model $SDK_DIR/Assets/ThirdParty/KnetikCloud/Model
