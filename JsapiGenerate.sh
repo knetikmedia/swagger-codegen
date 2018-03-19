@@ -105,3 +105,26 @@ git add -A
 git commit -m "JSAPI Javascript API update"
 git push -u origin master
 cd ../..
+
+#Objective C	
+mkdir -p sdk/objc	
+chmod 777 sdk/objc	
+cd sdk/objc	
+	
+git init	
+git config user.name "$GIT_USERNAME"	
+git config user.email "$GIT_EMAIL"	
+git remote add origin git@github.com:knetikcloud/knetikcloud-objc-client.git	
+git pull origin master	
+rm -r *	
+	
+cd ../..	
+java -jar $BASE_JAR generate -i $JSON_FILE -l objc -DpodName="JSAPI",classPrefix="JSAPI",gitRepoUrl="https://github.com/knetikcloud/knetikcloud-objc-client" $ID_FLAGS --artifact-id knetikcloud-objc-client -o sdk/objc	
+cd sdk/objc	
+	
+sed -i -e 's~'"$README_ORIGINAL"'~'"$README_REPLACEMENT"'~g' README.md	
+	
+git add -A	
+git commit -m "JSAPI Objective C API update"	
+git push -u origin master	
+cd ../..
