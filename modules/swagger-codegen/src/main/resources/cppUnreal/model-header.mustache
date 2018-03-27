@@ -1,0 +1,61 @@
+{{>licenseInfo}}
+{{#models}}{{#model}}/*
+ * {{classname}}.h
+ *
+ * {{description}}
+ */
+
+#pragma once
+
+{{^parent}}
+#include "KnetikCloudModel.h"
+{{/parent}}
+{{#imports}}{{{this}}}
+{{/imports}}
+
+namespace KnetikCloud
+{
+	/// <summary>
+	/// {{description}}
+	/// </summary>
+	class {{classname}} : public {{#parent}}{{{parent}}}{{/parent}}{{^parent}}KnetikCloudModel{{/parent}}
+	{
+	public:
+		{{classname}}();
+		virtual ~{{classname}}();
+ 
+		TSharedPtr<FJsonObject> ToJson() const;
+		void FromJson(TSharedPtr<FJsonObject> JsonObject);
+		{{#vars}}
+		{{^isInherited}}
+
+		/// <summary>
+		/// {{description}}
+		/// </summary>
+		{{^isNotContainer}}
+		{{{datatype}}}& Get{{name}}();
+		{{/isNotContainer}}
+		{{#isNotContainer}}
+		{{{datatype}}} Get{{name}}() const;
+		{{/isNotContainer}}
+		{{^required}}
+		bool {{name}}IsSet() const;
+		void Unset{{name}}();
+		{{/required}}
+		void Set{{name}}({{{datatype}}} Value);
+		{{/isInherited}}
+		{{/vars}}
+
+	protected:
+		{{#vars}}
+		{{^isInherited}}
+		{{{datatype}}} m{{name}};
+		{{^required}}bool b{{name}}IsSet;
+		{{/required}}
+		{{/isInherited}}
+
+		{{/vars}}
+	};
+}
+{{/model}}
+{{/models}}

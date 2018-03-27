@@ -67,6 +67,8 @@ cd sdk/csharp-unity
 
 sed -i -e 's~'"$README_ORIGINAL"'~'"$README_REPLACEMENT"'~g' README.md
 
+chmod +x ../../JsapiUnityFilesSynch.sh
+
 ../../JsapiUnityFilesSynch.sh src/main/CsharpUnity/com/knetikcloud/Api $SDK_DIR/Assets/ThirdParty/KnetikCloud/Api
 ../../JsapiUnityFilesSynch.sh src/main/CsharpUnity/com/knetikcloud/Model $SDK_DIR/Assets/ThirdParty/KnetikCloud/Model
 

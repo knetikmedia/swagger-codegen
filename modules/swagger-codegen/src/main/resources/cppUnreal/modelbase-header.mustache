@@ -1,0 +1,26 @@
+{{>licenseInfo}}
+/*
+ * KnetikCloudModel.h
+ *
+ * This is the base class for all model classes
+ */
+
+#pragma once
+
+#include <Core.h>
+
+
+namespace KnetikCloud
+{
+    class {{declspec}} KnetikCloudModel
+    {
+    public:
+        KnetikCloudModel();
+        virtual ~KnetikCloudModel();
+
+        virtual void Validate() = 0;
+
+        virtual FString ToJson() const = 0;
+        virtual void FromJson(const FString& JsonContent) = 0;
+    };
+}

@@ -1,0 +1,76 @@
+{{>licenseInfo}}
+{{#operations}}/*
+ * {{classname}}.h
+ *
+ * {{description}}
+ */
+
+#pragma once
+
+{{^parent}}
+#include "KnetikCloudClient.h"
+#include "KnetikCloudResponseContext.h"
+{{/parent}}
+{{#imports}}{{{import}}}
+{{/imports}}
+
+namespace KnetikCloud
+{
+	class {{classname}}
+	{
+	public:
+		{{classname}}(TSharedPtr<KnetikCloudClient> Client);
+		virtual ~{{classname}}();
+		{{#operation}}
+
+		/// <summary>
+		/// {{summary}}
+		/// </summary>
+		/// <remarks>
+		/// {{notes}}
+		/// </remarks>
+		{{#allParams}}
+		/// <param name="{{paramName}}">{{description}}{{^required}} (optional{{#defaultValue}}, default to {{.}}{{/defaultValue}}){{/required}}</param>
+		{{/allParams}}
+		void {{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+		bool {{operationId}}IsComplete() const;
+		bool {{operationId}}WasSuccessful() const;
+		{{#returnType}}
+		{{#returnContainer}}
+		const {{{returnType}}}& {{operationId}}GetResult();
+		{{/returnContainer}}
+		{{^returnContainer}}
+		{{{returnType}}} {{operationId}}GetResult();
+		{{/returnContainer}}
+		{{/returnType}}
+
+		{{/operation}}
+		// Types
+	private:
+		{{#operation}}
+		class {{operationId}}ResponseContext : public KnetikCloudResponseContext
+		{
+		public:
+			{{operationId}}ResponseContext();
+			void OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) override;
+		
+			{{#returnType}}
+			{{#returnContainer}}
+			{{{returnType}}} ServerResult;
+			{{/returnContainer}}
+			{{^returnContainer}}
+			{{{returnType}}} ServerResult;
+			{{/returnContainer}}
+			{{/returnType}}
+		};
+
+		{{/operation}}		
+		// Data members
+	private:
+		TSharedPtr<KnetikCloudClient> KnetikClient;		
+		{{#operation}}
+		TSharedPtr<{{operationId}}ResponseContext> {{operationId}}Response;
+		{{/operation}}
+	};
+}
+{{/operations}}

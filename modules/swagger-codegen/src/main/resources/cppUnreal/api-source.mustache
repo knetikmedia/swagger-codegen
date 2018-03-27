@@ -1,0 +1,252 @@
+{{>licenseInfo}}
+{{#operations}}
+
+#include "{{classname}}.h"
+
+#include "KnetikCloudException.h"
+#include "KnetikCloudJson.h"
+#include <Runtime/Json/Public/Serialization/JsonReader.h>
+#include <Runtime/Json/Public/Serialization/JsonSerializer.h>
+
+namespace KnetikCloud
+{
+	{{classname}}::{{classname}}(TSharedPtr<KnetikCloudClient> Client)
+	{
+		KnetikClient = Client;
+		{{#operation}}
+		{{operationId}}Response = MakeShareable(new {{operationId}}ResponseContext());
+		{{/operation}}
+	}
+
+	{{classname}}::~{{classname}}()
+	{
+	}
+
+	{{#operation}}
+	void {{classname}}::{{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
+	{
+		{{#allParams}}{{#required}}{{^isPrimitiveType}}{{^isContainer}}
+		if ({{paramName}}.IsValid())
+		{
+			throw KnetikCloudException(400, TEXT("Missing required parameter '{{paramName}}' when calling {{classname}}->{{operationId}}"));
+		}
+
+		{{/isContainer}}{{/isPrimitiveType}}{{/required}}{{/allParams}}
+		FString Path(TEXT("{{{path}}}"));
+		TMap<FString, FString> QueryParams;
+		TMap<FString, FString> HeaderParams;
+		TMap<FString, FString> FormParams;
+		FString JsonBody(TEXT(""));
+
+		{{#pathParams}}
+		FString {{{paramName}}}Replacement("{");
+		{{{paramName}}}Replacement.Append("{{baseName}}");
+		{{{paramName}}}Replacement.Append("}");
+		Path = Path.Replace({{{paramName}}}Replacement, KnetikCloudJson::ConvertParameterToContentString({{{paramName}}}));
+		{{/pathParams}}
+		
+		{{operationId}}Response->SetResponseReceived(false);
+		{{operationId}}Response->SetWasSuccessful(false);
+
+        {{#allParams}}
+        {{^isBodyParam}}
+        {{^isPathParam}}
+		{{#isPrimitiveType}}
+		{{#isQueryParam}}
+		QueryParams.Add("{{baseName}}", KnetikCloudJson::ConvertParameterToContentString({{paramName}}));
+		{{/isQueryParam}}
+		{{#isHeaderParam}}
+		HeaderParams.Add("{{baseName}}", KnetikCloudJson::ConvertParameterToContentString({{paramName}}));
+		{{/isHeaderParam}}
+		{{#isFormParam}}
+		{{#isFile}}
+		{{/isFile}}
+		{{^isFile}}
+		FormParams.Add("{{baseName}}", KnetikCloudJson::ConvertParameterToContentString({{paramName}}));
+		{{/isFile}}
+		{{/isFormParam}}
+		{{/isPrimitiveType}}
+        {{^isPrimitiveType}}
+		if ({{paramName}} != nullptr)
+        {
+            {{#isQueryParam}}
+            QueryParams.Add("{{baseName}}", KnetikCloudJson::ConvertParameterToContentString({{paramName}}));
+            {{/isQueryParam}}
+            {{#isHeaderParam}}
+            HeaderParams.Add("{{baseName}}", KnetikCloudJson::ConvertParameterToContentString({{paramName}}));
+            {{/isHeaderParam}}
+            {{#isFormParam}}
+            {{#isFile}}
+            {{/isFile}}
+            {{^isFile}}
+            FormParams.Add("{{baseName}}", KnetikCloudJson::ConvertParameterToContentString({{paramName}}));
+            {{/isFile}}
+            {{/isFormParam}}
+        }
+
+		{{/isPrimitiveType}}
+        {{/isPathParam}}
+        {{/isBodyParam}}
+        {{/allParams}}
+		{{#bodyParam}}
+		TSharedPtr<FJsonObject> JsonObject(new FJsonObject());
+		{{#isPrimitiveType}}
+		KnetikCloudJson::AddParameterToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", {{paramName}});
+		JsonBody = KnetikCloudJson::ConvertParameterToContentString(JsonObject);
+		{{/isPrimitiveType}}
+		{{^isPrimitiveType}}
+		{{#isListContainer}}
+		TArray <TSharedPtr<FJsonValue>> JsonValueArray;
+		for (auto& Item : {{paramName}})
+		{
+			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ConvertParameterToJsonValue<{{{items.datatype}}}>(Item);
+			JsonValueArray.Add(ItemJsonValue);
+		}
+		
+		JsonObject->SetArrayField("{{paramName}}", JsonValueArray);
+		JsonBody = KnetikCloudJson::ConvertParameterToContentString(JsonObject);
+		{{/isListContainer}}
+		{{^isListContainer}}
+		KnetikCloudJson::AddParameterToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", {{paramName}});
+		JsonBody = KnetikCloudJson::ConvertParameterToContentString(JsonObject);
+		{{/isListContainer}}
+		{{/isPrimitiveType}}
+		{{/bodyParam}}
+        {{#authMethods}}
+        {{#isApiKey}}
+        {{#isKeyInHeader}}
+		FString ApiKey = Configuration->GetApiKey("{{keyParamName}}");
+		if (ApiKey.Num() > 0)
+		{
+			HeaderParams.Add("{{keyParamName}}", ApiKey);
+		}
+
+        {{/isKeyInHeader}}
+        {{#isKeyInQuery}}
+		FString ApiKey = Configuration->GetApiKey("{{keyParamName}}");
+		if (ApiKey.Num() > 0)
+		{
+			QueryParams.Add("{{keyParamName}}", ApiKey);
+		}
+
+        {{/isKeyInQuery}}
+        {{/isApiKey}}
+        {{/authMethods}}
+
+		KnetikClient->CallApi(
+			Path, 			
+			"{{httpMethod}}", 
+			HeaderParams,
+			QueryParams,
+			FormParams,
+			JsonBody,
+			{{operationId}}Response);
+	}
+
+	bool {{classname}}::{{operationId}}IsComplete() const
+	{
+		return {{operationId}}Response->IsComplete();
+	}
+
+	bool {{classname}}::{{operationId}}WasSuccessful() const
+	{
+		return {{operationId}}Response->WasSuccessful();
+	}
+
+	{{#returnType}}
+	{{#returnContainer}}
+	const {{{returnType}}}& {{classname}}::{{operationId}}GetResult()
+	{
+		return {{operationId}}Response->ServerResult;
+	}
+	{{/returnContainer}}
+	{{^returnContainer}}
+	{{{returnType}}} {{classname}}::{{operationId}}GetResult()
+	{
+		return {{operationId}}Response->ServerResult;
+	}
+	{{/returnContainer}}
+	{{/returnType}}
+
+	{{classname}}::{{operationId}}ResponseContext::{{operationId}}ResponseContext()
+		{{#returnType}}
+		{{^returnContainer}}
+		: ServerResult({{{defaultResponse}}})
+		{{/returnContainer}}
+		{{/returnType}}
+	{
+	}
+
+	void {{classname}}::{{operationId}}ResponseContext::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+	{
+		SetResponseReceived(true);
+		SetWasSuccessful(bWasSuccessful);
+
+		if (!bWasSuccessful)
+		{
+			throw KnetikCloudException(500, "Error calling {{operationId}}: unexpected response type: " + Response->GetResponseCode());
+		}
+
+		{{#returnType}}
+		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
+
+		{{#isListContainer}}
+		TArray<TSharedPtr<FJsonValue>> JsonValueArray;
+		if (FJsonSerializer::Deserialize(Reader, JsonValueArray))
+		{
+			for (auto& ItemJson : JsonValueArray)
+			{
+				{{{vendorExtensions.x-codegen-response.items.datatype}}} Item({{{vendorExtensions.x-codegen-response.items.defaultValue}}});
+				KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.items.datatype}}}>(ItemJson, Item);
+				ServerResult.Add(Item);
+			}
+		}
+		{{/isListContainer}}
+		{{^isListContainer}}
+		{{#isMapContainer}}
+/*
+		TSharedPtr<FJsonValue> JsonValueArray;
+		if (FJsonSerializer::Deserialize(Reader, JsonValueArray))
+		{
+			// TMAP TODO: Response Support
+			for (auto& ItemJson : JsonValueArray)
+			{
+				{{{vendorExtensions.x-codegen-response.items.datatype}}} Item({{{vendorExtensions.x-codegen-response.items.defaultValue}}});
+				KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.items.datatype}}}>(ItemJson, Item);
+				//ServerResult.Add(Item);
+			}
+		}
+*/
+		{{/isMapContainer}}
+		{{^isMapContainer}}
+		{{#isPrimitiveType}}
+		TSharedPtr<FJsonValue> JsonValue;
+		if (FJsonSerializer::Deserialize(Reader, JsonValue))
+		{
+			KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonValue, ServerResult);
+		}
+		{{/isPrimitiveType}}
+		{{^isPrimitiveType}}
+		{{#isStringType}}
+		TSharedPtr<FJsonValue> JsonValue;
+		if (FJsonSerializer::Deserialize(Reader, JsonValue))
+		{
+			KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonValue, ServerResult);
+		}
+		{{/isStringType}}
+		{{^isStringType}}
+		TSharedPtr<FJsonObject> JsonObject;
+		if (FJsonSerializer::Deserialize(Reader, JsonObject))
+		{
+			KnetikCloudJson::ConvertJsonObjectToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject, ServerResult);
+		}
+		{{/isStringType}}		
+		{{/isPrimitiveType}}		
+		{{/isMapContainer}}
+		{{/isListContainer}}
+		{{/returnType}}
+	}
+
+	{{/operation}}
+}
+{{/operations}}
