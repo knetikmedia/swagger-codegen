@@ -20,7 +20,7 @@ mkdir "%SDK_FOLDER%\"
 mkdir "%OUT_FOLDER%\"
 
 REM Generate code
-java -jar "%MODULES_FOLDER%\swagger-codegen-cli\target\swagger-codegen-cli.jar" generate -i "%JSON_FILE%" -l cpprest -t "%TEMPLATE_FOLDER%" -DpackageName="com.knetikcloud" %ID_FLAGS% --artifact-id knetikcloud-cpp-unreal-client -o "%OUT_FOLDER%"
+java -jar "%MODULES_FOLDER%\swagger-codegen-cli\target\swagger-codegen-cli.jar" generate -i "%JSON_FILE%" -l cppunity -DpackageName="com.knetikcloud" %ID_FLAGS% --artifact-id knetikcloud-cpp-unreal-client -o "%OUT_FOLDER%"
 
 REM Remove unneccessary files
 del /F "%OUT_FOLDER%\.gitignore"
