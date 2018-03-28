@@ -20,10 +20,9 @@ mkdir "%SDK_FOLDER%\"
 mkdir "%OUT_FOLDER%\"
 
 REM Generate code
-java -jar "%MODULES_FOLDER%\swagger-codegen-cli\target\swagger-codegen-cli.jar" generate -i "%JSON_FILE%" -l cppunity -DpackageName="com.knetikcloud" %ID_FLAGS% --artifact-id knetikcloud-cpp-unreal-client -o "%OUT_FOLDER%"
+java -jar "%MODULES_FOLDER%\swagger-codegen-cli\target\swagger-codegen-cli.jar" generate -i "%JSON_FILE%" -l cppunreal -DpackageName="com.knetikcloud" %ID_FLAGS% --artifact-id knetikcloud-cpp-unreal-client -o "%OUT_FOLDER%"
 
 REM Remove unneccessary files
-del /F "%OUT_FOLDER%\.gitignore"
 del /F "%OUT_FOLDER%\.swagger-codegen-ignore"
 del /F "%OUT_FOLDER%\ApiClient.cpp"
 del /F "%OUT_FOLDER%\ApiClient.h"
@@ -31,8 +30,6 @@ del /F "%OUT_FOLDER%\ApiConfiguration.cpp"
 del /F "%OUT_FOLDER%\ApiConfiguration.h"
 del /F "%OUT_FOLDER%\ApiException.cpp"
 del /F "%OUT_FOLDER%\ApiException.h" 
-del /F "%OUT_FOLDER%\CMakeLists.txt"
-del /F "%OUT_FOLDER%\git_push.sh"
 del /F "%OUT_FOLDER%\HttpContent.cpp"
 del /F "%OUT_FOLDER%\HttpContent.h"
 del /F "%OUT_FOLDER%\IHttpBody.h"
