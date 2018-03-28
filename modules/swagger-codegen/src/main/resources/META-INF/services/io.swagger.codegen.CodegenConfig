@@ -9,6 +9,7 @@ io.swagger.codegen.languages.CSharpClientCodegen
 io.swagger.codegen.languages.ClojureClientCodegen
 io.swagger.codegen.languages.ConfluenceWikiGenerator
 io.swagger.codegen.languages.CppRestClientCodegen
+io.swagger.codegen.languages.CppUnrealClientCodegen
 io.swagger.codegen.languages.CsharpDotNet2ClientCodegen
 io.swagger.codegen.languages.CsharpUnityClientCodegen
 io.swagger.codegen.languages.DartClientCodegen

@@ -1,6 +1,6 @@
 #!/bin/bash
 if [ $# -lt 2 ]; then
-  echo "USAGE:  JsapiUnityGenerate.sh swagger_doc_url version_number"
+  echo "USAGE:  JsapiGenerate.sh swagger_doc_url version_number"
   exit 1
 fi
 
@@ -13,7 +13,6 @@ DEV_NAME="Shawn Stout"
 DEV_EMAIL="admin@knetikcloud.com"
 DEV_ORG="Knetik"
 DEV_ORG_URL="knetikcloud.com"
-BRANCH="auto_gen2"
 BR_2="\n  "
 BR_4="\n    "
 BR_6="\n      "
@@ -32,55 +31,21 @@ README_REPLACEMENT+="\`\`\`json: \n"
 README_REPLACEMENT+="{\"access_token\":\"25a0659c-6f4a-40bd-950e-0ba4af7acf0f\",\"token_type\":\"bearer\",\"expires_in\":2145660769,\"scope\":\"write read\"}\n"
 README_REPLACEMENT+="\`\`\` \n\n"
 README_REPLACEMENT+="Use the provided access_token in sub-sequent requests to authenticate (see code below). Make sure you refresh your token before it expires to avoid having to re-authenticate."
-UNITY_TEMPLATE_FOLDER="modules\swagger-codegen\src\main\resources\CsharpUnity"
 
 ID_FLAGS="--group-id com.knetikcloud --artifact-version $VERSION_NUMBER -DprojectVersion=$VERSION_NUMBER"
-
-SDK_DIR=../../../knetikcloud-unity-sdk
-#SDK_DIR=/DEV/splyt/splyt-unity-client
-
-mkdir -p $SDK_DIR
-chmod 777 $SDK_DIR
-pushd $SDK_DIR
-git init
-git config user.name "$GIT_USERNAME"
-git config user.email "$GIT_EMAIL"
-git remote add origin git@github.com:knetikmedia/knetikcloud-unity-sdk.git
-git reset --hard
-git clean -f
-git checkout $BRANCH
-git pull origin $BRANCH
-rm -r *
-popd
 
 mkdir -p sdk
 chmod 777 sdk
 
+#Unreal
+mkdir -p sdk/unreal
+chmod 777 sdk/unreal
+cd sdk/unreal
+rm -r *
+cd ../..
 
-#CSharp Unity
-rm -rf sdk/csharp-unity
-mkdir -p sdk/csharp-unity
-chmod 777 sdk/csharp-unity
+java -jar $BASE_JAR generate -i $JSON_FILE -DinvokerPackage="com.knetikcloud.client",modelPackage="com.knetikcloud.model",apiPackage="com.knetikcloud.api",packageName="com.knetikcloud" -l cppunreal $ID_FLAGS --artifact-id knetikcloud-cpp-unreal-client -o sdk/unreal
 
-java -jar $BASE_JAR generate -i $JSON_FILE -l CsharpUnity -t "$UNITY_TEMPLATE_FOLDER" -DpackageName="com.knetikcloud" $ID_FLAGS --artifact-id knetikcloud-unity-client -o sdk/csharp-unity
-cd sdk/csharp-unity
-
+cd sdk/unreal
 sed -i -e 's~'"$README_ORIGINAL"'~'"$README_REPLACEMENT"'~g' README.md
-
-chmod +x ../../JsapiUnityFilesSynch.sh
-
-../../JsapiUnityFilesSynch.sh src/main/CsharpUnity/com/knetikcloud/Api $SDK_DIR/Assets/ThirdParty/KnetikCloud/Api
-../../JsapiUnityFilesSynch.sh src/main/CsharpUnity/com/knetikcloud/Model $SDK_DIR/Assets/ThirdParty/KnetikCloud/Model
-
-cp README.md $SDK_DIR/
-rm $SDK_DIR/docs/*
-cp docs/* $SDK_DIR/docs/
-cp vendor/packages.config $SDK_DIR/vendor/packages.config
-
-pushd $SDK_DIR/
-git add -A
-git commit -m "JSAPI Unity API update"
-git push -u origin $BRANCH
-popd
-
 cd ../..
