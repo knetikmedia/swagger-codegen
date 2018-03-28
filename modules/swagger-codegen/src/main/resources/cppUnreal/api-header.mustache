@@ -33,6 +33,7 @@ namespace KnetikCloud
 		/// <param name="{{paramName}}">{{description}}{{^required}} (optional{{#defaultValue}}, default to {{.}}{{/defaultValue}}){{/required}}</param>
 		{{/allParams}}
 		void {{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+
 		bool {{operationId}}IsComplete() const;
 		bool {{operationId}}WasSuccessful() const;
 		{{#returnType}}
@@ -45,31 +46,27 @@ namespace KnetikCloud
 		{{/returnType}}
 
 		{{/operation}}
-		// Types
+		// Callbacks
 	private:
 		{{#operation}}
-		class {{operationId}}ResponseContext : public KnetikCloudResponseContext
-		{
-		public:
-			{{operationId}}ResponseContext();
-			void OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) override;
-		
-			{{#returnType}}
-			{{#returnContainer}}
-			{{{returnType}}} ServerResult;
-			{{/returnContainer}}
-			{{^returnContainer}}
-			{{{returnType}}} ServerResult;
-			{{/returnContainer}}
-			{{/returnType}}
-		};
-
+		void {{operationId}}OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 		{{/operation}}		
+
 		// Data members
 	private:
-		TSharedPtr<KnetikCloudClient> KnetikClient;		
+		TSharedPtr<KnetikCloudClient> KnetikClient;
 		{{#operation}}
-		TSharedPtr<{{operationId}}ResponseContext> {{operationId}}Response;
+
+		bool b{{operationId}}IsComplete;
+		bool b{{operationId}}WasSuccessful;
+		{{#returnType}}
+		{{#returnContainer}}
+		{{{returnType}}} {{operationId}}ServerResult;
+		{{/returnContainer}}
+		{{^returnContainer}}
+		{{{returnType}}} {{operationId}}ServerResult;
+		{{/returnContainer}}
+		{{/returnType}}
 		{{/operation}}
 	};
 }

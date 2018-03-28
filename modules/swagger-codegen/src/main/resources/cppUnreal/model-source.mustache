@@ -160,8 +160,8 @@ namespace KnetikCloud
 		{{#isListContainer}}
 		m{{name}}.Empty();
 		{{#required}}
-		TArray<TSharedPtr<FJsonValue>> JsonValueArray = JsonObject->GetArrayField("{{baseName}}");
-		for (auto& ItemJsonValue : JsonValueArray)
+		TArray<TSharedPtr<FJsonValue>> {{name}}JsonValueArray = JsonObject->GetArrayField("{{baseName}}");
+		for (auto& ItemJsonValue : {{name}}JsonValueArray)
 		{
 			{{{items.datatype}}} {{name}}Item({{{items.defaultValue}}});
 			KnetikCloudJson::ConvertJsonValueToParameter<{{{items.baseType}}}>(ItemJsonValue, {{name}}Item);
@@ -172,8 +172,8 @@ namespace KnetikCloud
 		{{^required}}
 		if (JsonObject->HasField("{{baseName}}"))
 		{
-			TArray<TSharedPtr<FJsonValue>> JsonValueArray = JsonObject->GetArrayField("{{baseName}}");
-			for (auto& ItemJsonValue : JsonValueArray)
+			TArray<TSharedPtr<FJsonValue>> {{name}}JsonValueArray = JsonObject->GetArrayField("{{baseName}}");
+			for (auto& ItemJsonValue : {{name}}JsonValueArray)
 			{
 				{{{items.datatype}}} {{name}}Item({{{items.defaultValue}}});
 				KnetikCloudJson::ConvertJsonValueToParameter<{{{items.baseType}}}>(ItemJsonValue, {{name}}Item);
@@ -187,12 +187,12 @@ namespace KnetikCloud
 		m{{name}}.Empty();
 		{{#required}}
 		// TMAP TODO: FromJson() Support
-		TArray<TSharedPtr<FJsonValue>> JsonValueArray = JsonObject->GetArrayField("{{baseName}}");
-		for (auto& ItemJsonValue : JsonValueArray)
+		TArray<TSharedPtr<FJsonValue>> {{name}}JsonValueArray = JsonObject->GetArrayField("{{baseName}}");
+		for (auto& ItemJsonValue : {{name}}JsonValueArray)
 		{
 			{{{items.datatype}}} {{name}}Item({{{items.defaultValue}}});
 			KnetikCloudJson::ConvertJsonValueToParameter<{{{items.baseType}}}>(ItemJsonValue, {{name}}Item);
-			// ghornmoen TMAP support! 
+			//  TMAP support! 
 			//m{{name}}.Add({{name}}Item);
 		}
 
@@ -201,12 +201,12 @@ namespace KnetikCloud
 		if (JsonObject->HasField("{{baseName}}"))
 		{
 			// TMAP TODO: FromJson() Support
-			TArray<TSharedPtr<FJsonValue>> JsonValueArray = JsonObject->GetArrayField("{{baseName}}");
-			for (auto& ItemJsonValue : JsonValueArray)
+			TArray<TSharedPtr<FJsonValue>> {{name}}JsonValueArray = JsonObject->GetArrayField("{{baseName}}");
+			for (auto& ItemJsonValue : {{name}}JsonValueArray)
 			{
 				{{{items.datatype}}} {{name}}Item({{{items.defaultValue}}});
 				KnetikCloudJson::ConvertJsonValueToParameter<{{{items.baseType}}}>(ItemJsonValue, {{name}}Item);
-				// ghornmoen TMAP support! 
+				//  TMAP support! 
 				//m{{name}}.Add({{name}}Item);
 			}
 		}

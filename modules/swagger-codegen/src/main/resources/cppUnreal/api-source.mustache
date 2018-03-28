@@ -3,7 +3,7 @@
 
 #include "{{classname}}.h"
 
-#include "KnetikCloudException.h"
+#include "KnetikCloudLogger.h"
 #include "KnetikCloudJson.h"
 #include <Runtime/Json/Public/Serialization/JsonReader.h>
 #include <Runtime/Json/Public/Serialization/JsonSerializer.h>
@@ -14,7 +14,10 @@ namespace KnetikCloud
 	{
 		KnetikClient = Client;
 		{{#operation}}
-		{{operationId}}Response = MakeShareable(new {{operationId}}ResponseContext());
+
+		b{{operationId}}IsComplete = false;
+		b{{operationId}}WasSuccessful = false;
+		{{operationId}}ServerResult = MakeShareable(new {{{returnType}}}());
 		{{/operation}}
 	}
 
@@ -45,8 +48,8 @@ namespace KnetikCloud
 		Path = Path.Replace({{{paramName}}}Replacement, KnetikCloudJson::ConvertParameterToContentString({{{paramName}}}));
 		{{/pathParams}}
 		
-		{{operationId}}Response->SetResponseReceived(false);
-		{{operationId}}Response->SetWasSuccessful(false);
+		b{{operationId}}IsComplete = false;
+		b{{operationId}}WasSuccessful = false;
 
         {{#allParams}}
         {{^isBodyParam}}
@@ -132,6 +135,8 @@ namespace KnetikCloud
         {{/isKeyInQuery}}
         {{/isApiKey}}
         {{/authMethods}}
+		TSharedRef<IHttpRequest> Request = KnetikClient->CreateRequest();
+		Request->OnProcessRequestComplete().BindRaw(this, &{{classname}}::{{operationId}}OnResponseReceived);
 
 		KnetikClient->CallApi(
 			Path, 			
@@ -140,7 +145,7 @@ namespace KnetikCloud
 			QueryParams,
 			FormParams,
 			JsonBody,
-			{{operationId}}Response);
+			Request);
 	}
 
 	bool {{classname}}::{{operationId}}IsComplete() const
@@ -157,34 +162,25 @@ namespace KnetikCloud
 	{{#returnContainer}}
 	const {{{returnType}}}& {{classname}}::{{operationId}}GetResult()
 	{
-		return {{operationId}}Response->ServerResult;
+		return {{operationId}}ServerResult;
 	}
 	{{/returnContainer}}
 	{{^returnContainer}}
 	{{{returnType}}} {{classname}}::{{operationId}}GetResult()
 	{
-		return {{operationId}}Response->ServerResult;
+		return {{operationId}}ServerResult;
 	}
 	{{/returnContainer}}
 	{{/returnType}}
 
-	{{classname}}::{{operationId}}ResponseContext::{{operationId}}ResponseContext()
-		{{#returnType}}
-		{{^returnContainer}}
-		: ServerResult({{{defaultResponse}}})
-		{{/returnContainer}}
-		{{/returnType}}
+	void {{classname}}::{{operationId}}OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 	{
-	}
-
-	void {{classname}}::{{operationId}}ResponseContext::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
-	{
-		SetResponseReceived(true);
-		SetWasSuccessful(bWasSuccessful);
+		b{{operationId}}IsComplete = true;
+		b{{operationId}}WasSuccessful = bWasSuccessful;
 
 		if (!bWasSuccessful)
 		{
-			throw KnetikCloudException(500, "Error calling {{operationId}}: unexpected response type: " + Response->GetResponseCode());
+			KnetikCloudLogger::LogError(500, "Error calling {{operationId}}: unexpected response type: " + Response->GetResponseCode());
 		}
 
 		{{#returnType}}
@@ -223,7 +219,7 @@ namespace KnetikCloud
 		TSharedPtr<FJsonValue> JsonValue;
 		if (FJsonSerializer::Deserialize(Reader, JsonValue))
 		{
-			KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonValue, ServerResult);
+			KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonValue, {{operationId}}ServerResult);
 		}
 		{{/isPrimitiveType}}
 		{{^isPrimitiveType}}
@@ -231,14 +227,14 @@ namespace KnetikCloud
 		TSharedPtr<FJsonValue> JsonValue;
 		if (FJsonSerializer::Deserialize(Reader, JsonValue))
 		{
-			KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonValue, ServerResult);
+			KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonValue, {{operationId}}ServerResult);
 		}
 		{{/isStringType}}
 		{{^isStringType}}
 		TSharedPtr<FJsonObject> JsonObject;
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
-			KnetikCloudJson::ConvertJsonObjectToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject, ServerResult);
+			KnetikCloudJson::ConvertJsonObjectToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject, {{operationId}}ServerResult);
 		}
 		{{/isStringType}}		
 		{{/isPrimitiveType}}		

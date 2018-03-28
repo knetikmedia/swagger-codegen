@@ -324,6 +324,3 @@ rename "%OUT_FOLDER%\model\SimpleReferenceResource?string?.h" "SimpleReferenceRe
 
 rename "%OUT_FOLDER%\model\ValueWrapper?boolean?.cpp" "ValueWrapperBoolean.cpp"
 rename "%OUT_FOLDER%\model\ValueWrapper?boolean?.h" "ValueWrapperBoolean.h"
-
-rename "%OUT_FOLDER%\model\ValueWrapper?string?.cpp" "ValueWrapperString.cpp"
-rename "%OUT_FOLDER%\model\ValueWrapper?string?.h" "ValueWrapperString.h"
