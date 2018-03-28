@@ -158,9 +158,10 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 		typeMapping.put("UUID", "FString");
 
 		super.importMapping = new HashMap<String, String>();
-		importMapping.put("FString", "#include <string>");
+		importMapping.put("FString", "");
 		importMapping.put("HttpContent", "#include \"HttpContent.h\"");
 		importMapping.put("KnetikObject", "#include \"KnetikObject.h\"");
+		importMapping.put("TArray", "");
 	}
 
 	protected void addOption(String key, String description, String defaultValue) {
