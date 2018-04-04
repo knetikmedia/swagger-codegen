@@ -8,15 +8,15 @@
 #pragma once
 
 {{^parent}}
+#include "KnetikCloudApi.h"
 #include "KnetikCloudClient.h"
-#include "KnetikCloudResponseContext.h"
 {{/parent}}
 {{#imports}}{{{import}}}
 {{/imports}}
 
 namespace KnetikCloud
 {
-	class {{classname}}
+	class {{classname}} : public IKnetikCloudApi
 	{
 	public:
 		{{classname}}(TSharedPtr<KnetikCloudClient> Client);
@@ -44,8 +44,8 @@ namespace KnetikCloud
 		{{{returnType}}} {{operationId}}GetResult();
 		{{/returnContainer}}
 		{{/returnType}}
-
 		{{/operation}}
+
 		// Callbacks
 	private:
 		{{#operation}}

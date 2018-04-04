@@ -17,7 +17,9 @@ namespace KnetikCloud
 
 		b{{operationId}}IsComplete = false;
 		b{{operationId}}WasSuccessful = false;
-		{{operationId}}ServerResult = MakeShareable(new {{{returnType}}}());
+		{{#returnType}}
+		{{operationId}}ServerResult = MakeShareable(new {{{returnBaseType}}}());
+		{{/returnType}}
 		{{/operation}}
 	}
 
@@ -135,6 +137,7 @@ namespace KnetikCloud
         {{/isKeyInQuery}}
         {{/isApiKey}}
         {{/authMethods}}
+
 		TSharedRef<IHttpRequest> Request = KnetikClient->CreateRequest();
 		Request->OnProcessRequestComplete().BindRaw(this, &{{classname}}::{{operationId}}OnResponseReceived);
 
@@ -150,12 +153,12 @@ namespace KnetikCloud
 
 	bool {{classname}}::{{operationId}}IsComplete() const
 	{
-		return {{operationId}}Response->IsComplete();
+		return b{{operationId}}IsComplete;
 	}
 
 	bool {{classname}}::{{operationId}}WasSuccessful() const
 	{
-		return {{operationId}}Response->WasSuccessful();
+		return b{{operationId}}WasSuccessful;
 	}
 
 	{{#returnType}}
@@ -223,20 +226,20 @@ namespace KnetikCloud
 		}
 		{{/isPrimitiveType}}
 		{{^isPrimitiveType}}
-		{{#isStringType}}
+		{{#isString}}
 		TSharedPtr<FJsonValue> JsonValue;
 		if (FJsonSerializer::Deserialize(Reader, JsonValue))
 		{
 			KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonValue, {{operationId}}ServerResult);
 		}
-		{{/isStringType}}
-		{{^isStringType}}
+		{{/isString}}
+		{{^isString}}
 		TSharedPtr<FJsonObject> JsonObject;
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
 			KnetikCloudJson::ConvertJsonObjectToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject, {{operationId}}ServerResult);
 		}
-		{{/isStringType}}		
+		{{/isString}}
 		{{/isPrimitiveType}}		
 		{{/isMapContainer}}
 		{{/isListContainer}}
