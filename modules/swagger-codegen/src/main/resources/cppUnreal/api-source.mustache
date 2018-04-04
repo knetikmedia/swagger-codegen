@@ -226,20 +226,20 @@ namespace KnetikCloud
 		}
 		{{/isPrimitiveType}}
 		{{^isPrimitiveType}}
-		{{#isString}}
+		{{#vendorExtensions.x-codegen-response.isString}}
 		TSharedPtr<FJsonValue> JsonValue;
 		if (FJsonSerializer::Deserialize(Reader, JsonValue))
 		{
 			KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonValue, {{operationId}}ServerResult);
 		}
-		{{/isString}}
-		{{^isString}}
+		{{/vendorExtensions.x-codegen-response.isString}}
+		{{^vendorExtensions.x-codegen-response.isString}}
 		TSharedPtr<FJsonObject> JsonObject;
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
 			KnetikCloudJson::ConvertJsonObjectToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject, {{operationId}}ServerResult);
 		}
-		{{/isString}}
+		{{/vendorExtensions.x-codegen-response.isString}}
 		{{/isPrimitiveType}}		
 		{{/isMapContainer}}
 		{{/isListContainer}}
