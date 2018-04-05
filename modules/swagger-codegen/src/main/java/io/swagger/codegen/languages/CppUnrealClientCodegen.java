@@ -150,7 +150,7 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 		typeMapping.put("long", "int64");
 		typeMapping.put("boolean", "bool");
 		typeMapping.put("array", "TArray");
-		typeMapping.put("map", "std::map");
+		typeMapping.put("map", "TMap");
 		typeMapping.put("file", "HttpContent");
 		typeMapping.put("object", "KnetikObject");
 		typeMapping.put("binary", "std::string");
@@ -348,7 +348,7 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 		else if (p instanceof MapProperty) {
 			MapProperty ap = (MapProperty) p;
 			String inner = getSwaggerType(ap.getAdditionalProperties());
-			return "std::map<FString, " + inner + ">()";
+			return "TMap()";
 		} else if (p instanceof ArrayProperty) {
 			ArrayProperty ap = (ArrayProperty) p;
 			String inner = getSwaggerType(ap.getItems());
