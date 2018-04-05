@@ -162,6 +162,7 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 		importMapping.put("HttpContent", "#include \"HttpContent.h\"");
 		importMapping.put("KnetikObject", "#include \"KnetikObject.h\"");
 		importMapping.put("TArray", "");
+		importMapping.put("TMap", "");
 	}
 
 	protected void addOption(String key, String description, String defaultValue) {
