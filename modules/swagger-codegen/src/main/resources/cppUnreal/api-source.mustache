@@ -19,17 +19,17 @@ namespace KnetikCloud
 		b{{operationId}}WasSuccessful = false;
 		{{#returnType}}
 		
-		{{#isPrimitiveType}}
+		{{#vendorExtensions.x-codegen-response.isPrimitiveType}}
 		{{operationId}}ServerResult = {{{defaultValue}}}
-		{{/isPrimitiveType}}
-		{{^isPrimitiveType}}
-		{{#isString}}
+		{{/vendorExtensions.x-codegen-response.isPrimitiveType}}
+		{{^vendorExtensions.x-codegen-response.isPrimitiveType}}
+		{{#vendorExtensions.x-codegen-response.isString}}
 		{{operationId}}ServerResult = TEXT("");
-		{{/isString}}
-		{{^isString}}
+		{{/vendorExtensions.x-codegen-response.isString}}
+		{{^vendorExtensions.x-codegen-response.isString}}
 		{{operationId}}ServerResult = MakeShareable(new {{{returnBaseType}}}());
-		{{/isString}}
-		{{/isPrimitiveType}}		
+		{{/vendorExtensions.x-codegen-response.isString}}
+		{{/vendorExtensions.x-codegen-response.isPrimitiveType}}		
 		{{/returnType}}
 		{{/operation}}
 	}
