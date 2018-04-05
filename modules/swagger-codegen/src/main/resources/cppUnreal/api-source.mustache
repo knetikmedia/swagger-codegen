@@ -18,7 +18,17 @@ namespace KnetikCloud
 		b{{operationId}}IsComplete = false;
 		b{{operationId}}WasSuccessful = false;
 		{{#returnType}}
+		
+		{{#isPrimitiveType}}
+		{{operationId}}ServerResult = {{{defaultValue}}}
+		{{/isPrimitiveType}}
+		{{^isPrimitiveType}}
+		{{#isString}}
+		{{/isString}}
+		{{^isString}}
 		{{operationId}}ServerResult = MakeShareable(new {{{returnBaseType}}}());
+		{{/isString}}
+		{{/isPrimitiveType}}		
 		{{/returnType}}
 		{{/operation}}
 	}
@@ -47,7 +57,7 @@ namespace KnetikCloud
 		FString {{{paramName}}}Replacement("{");
 		{{{paramName}}}Replacement.Append("{{baseName}}");
 		{{{paramName}}}Replacement.Append("}");
-		Path = Path.Replace({{{paramName}}}Replacement, KnetikCloudJson::ConvertParameterToContentString({{{paramName}}}));
+		Path = Path.Replace(*{{{paramName}}}Replacement, *KnetikCloudJson::ConvertParameterToContentString({{{paramName}}}));
 		{{/pathParams}}
 		
 		b{{operationId}}IsComplete = false;
@@ -240,7 +250,7 @@ namespace KnetikCloud
 			KnetikCloudJson::ConvertJsonObjectToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject, {{operationId}}ServerResult);
 		}
 		{{/vendorExtensions.x-codegen-response.isString}}
-		{{/isPrimitiveType}}		
+		{{/isPrimitiveType}}
 		{{/isMapContainer}}
 		{{/isListContainer}}
 		{{/returnType}}
