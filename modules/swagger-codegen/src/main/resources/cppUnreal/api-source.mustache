@@ -24,6 +24,7 @@ namespace KnetikCloud
 		{{/isPrimitiveType}}
 		{{^isPrimitiveType}}
 		{{#isString}}
+		{{operationId}}ServerResult = TEXT("");
 		{{/isString}}
 		{{^isString}}
 		{{operationId}}ServerResult = MakeShareable(new {{{returnBaseType}}}());
