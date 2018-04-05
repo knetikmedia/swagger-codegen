@@ -29,7 +29,7 @@ namespace KnetikCloud
 		{{^isString}}
 		{{operationId}}ServerResult = MakeShareable(new {{{returnBaseType}}}());
 		{{/isString}}
-		{{/isPrimitiveType}}		
+		{{/isPrimitiveType}}
 		{{/returnType}}
 		{{/operation}}
 	}
@@ -208,7 +208,7 @@ namespace KnetikCloud
 			{
 				{{{vendorExtensions.x-codegen-response.items.datatype}}} Item({{{vendorExtensions.x-codegen-response.items.defaultValue}}});
 				KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.items.datatype}}}>(ItemJson, Item);
-				ServerResult.Add(Item);
+				{{operationId}}ServerResult.Add(Item);
 			}
 		}
 		{{/isListContainer}}
@@ -223,7 +223,7 @@ namespace KnetikCloud
 			{
 				{{{vendorExtensions.x-codegen-response.items.datatype}}} Item({{{vendorExtensions.x-codegen-response.items.defaultValue}}});
 				KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.items.datatype}}}>(ItemJson, Item);
-				//ServerResult.Add(Item);
+				//{{operationId}}ServerResult.Add(Item);
 			}
 		}
 */
