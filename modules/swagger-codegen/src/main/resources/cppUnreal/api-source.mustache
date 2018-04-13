@@ -18,7 +18,8 @@ namespace KnetikCloud
 		b{{operationId}}IsComplete = false;
 		b{{operationId}}WasSuccessful = false;
 		{{#returnType}}
-		
+
+		{{#isNotContainer}}
 		{{#vendorExtensions.x-codegen-response.isPrimitiveType}}
 		{{operationId}}ServerResult = {{{defaultValue}}}
 		{{/vendorExtensions.x-codegen-response.isPrimitiveType}}
@@ -30,6 +31,7 @@ namespace KnetikCloud
 		{{operationId}}ServerResult = MakeShareable(new {{{returnBaseType}}}());
 		{{/vendorExtensions.x-codegen-response.isString}}
 		{{/vendorExtensions.x-codegen-response.isPrimitiveType}}		
+		{{/isNotContainer}}
 		{{/returnType}}
 		{{/operation}}
 	}
@@ -44,7 +46,8 @@ namespace KnetikCloud
 		{{#allParams}}{{#required}}{{^isPrimitiveType}}{{^isContainer}}
 		if ({{paramName}}.IsValid())
 		{
-			throw KnetikCloudException(400, TEXT("Missing required parameter '{{paramName}}' when calling {{classname}}->{{operationId}}"));
+			KnetikCloudLogger::LogError(400, "Missing required parameter '{{paramName}}' when calling {{classname}}->{{operationId}}");
+			return;
 		}
 
 		{{/isContainer}}{{/isPrimitiveType}}{{/required}}{{/allParams}}
@@ -115,7 +118,7 @@ namespace KnetikCloud
 		TArray <TSharedPtr<FJsonValue>> JsonValueArray;
 		for (auto& Item : {{paramName}})
 		{
-			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ConvertParameterToJsonValue<{{{items.datatype}}}>(Item);
+			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ConvertParameterToJsonValue<{{{vendorExtensions.x-codegen-response.items.dataType}}}>(Item);
 			JsonValueArray.Add(ItemJsonValue);
 		}
 		
@@ -208,7 +211,7 @@ namespace KnetikCloud
 			{
 				{{{vendorExtensions.x-codegen-response.items.datatype}}} Item({{{vendorExtensions.x-codegen-response.items.defaultValue}}});
 				KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.items.datatype}}}>(ItemJson, Item);
-				ServerResult.Add(Item);
+				{{operationId}}ServerResult.Add(Item);
 			}
 		}
 		{{/isListContainer}}
@@ -223,7 +226,7 @@ namespace KnetikCloud
 			{
 				{{{vendorExtensions.x-codegen-response.items.datatype}}} Item({{{vendorExtensions.x-codegen-response.items.defaultValue}}});
 				KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.items.datatype}}}>(ItemJson, Item);
-				//ServerResult.Add(Item);
+				//{{operationId}}ServerResult.Add(Item);
 			}
 		}
 */
@@ -248,6 +251,7 @@ namespace KnetikCloud
 		TSharedPtr<FJsonObject> JsonObject;
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
+			// int32 should be a primitive!
 			KnetikCloudJson::ConvertJsonObjectToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject, {{operationId}}ServerResult);
 		}
 		{{/vendorExtensions.x-codegen-response.isString}}
