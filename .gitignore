@@ -26,6 +26,8 @@ packages/
 .packages
 .vagrant/
 .vscode/
+modules/swagger-codegen-cli/.gitignore
+swagger-codegen-cli.jar
 
 .settings
 
