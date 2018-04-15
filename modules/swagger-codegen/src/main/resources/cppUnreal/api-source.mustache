@@ -251,7 +251,6 @@ namespace KnetikCloud
 		TSharedPtr<FJsonObject> JsonObject;
 		if (FJsonSerializer::Deserialize(Reader, JsonObject))
 		{
-			// int32 should be a primitive!
 			KnetikCloudJson::ConvertJsonObjectToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject, {{operationId}}ServerResult);
 		}
 		{{/vendorExtensions.x-codegen-response.isString}}
