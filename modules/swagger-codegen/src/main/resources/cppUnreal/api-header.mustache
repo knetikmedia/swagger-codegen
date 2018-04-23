@@ -9,7 +9,6 @@
 
 {{^parent}}
 #include "KnetikCloudApi.h"
-#include "KnetikCloudClient.h"
 {{/parent}}
 {{#imports}}{{{import}}}
 {{/imports}}
@@ -19,9 +18,21 @@ namespace KnetikCloud
 	class {{classname}} : public IKnetikCloudApi
 	{
 	public:
-		{{classname}}(TSharedPtr<KnetikCloudClient> Client);
+		{{classname}}();
 		virtual ~{{classname}}();
 		{{#operation}}
+
+		{{#returnType}}
+		{{#returnContainer}}
+		typedef std::function<void(bool, {{{returnType}}})> {{operationId}}CallbackFunction;
+		{{/returnContainer}}
+		{{^returnContainer}}
+		typedef std::function<void(bool, {{{returnType}}})> {{operationId}}CallbackFunction;
+		{{/returnContainer}}
+		{{/returnType}}
+		{{^returnType}}
+		typedef std::function<void(bool)> {{operationId}}CallbackFunction;
+		{{/returnType}}
 
 		/// <summary>
 		/// {{summary}}
@@ -32,16 +43,15 @@ namespace KnetikCloud
 		{{#allParams}}
 		/// <param name="{{paramName}}">{{description}}{{^required}} (optional{{#defaultValue}}, default to {{.}}{{/defaultValue}}){{/required}}</param>
 		{{/allParams}}
-		void {{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
-
+		void {{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}},{{/allParams}} {{operationId}}CallbackFunction Callback);
 		bool {{operationId}}IsComplete() const;
 		bool {{operationId}}WasSuccessful() const;
 		{{#returnType}}
 		{{#returnContainer}}
-		const {{{returnType}}}& {{operationId}}GetResult();
+		{{{returnType}}} {{operationId}}ServerResult;
 		{{/returnContainer}}
 		{{^returnContainer}}
-		{{{returnType}}} {{operationId}}GetResult();
+		{{{returnType}}} {{operationId}}ServerResult;
 		{{/returnContainer}}
 		{{/returnType}}
 		{{/operation}}
@@ -54,19 +64,11 @@ namespace KnetikCloud
 
 		// Data members
 	private:
-		TSharedPtr<KnetikCloudClient> KnetikClient;
 		{{#operation}}
 
 		bool b{{operationId}}IsComplete;
 		bool b{{operationId}}WasSuccessful;
-		{{#returnType}}
-		{{#returnContainer}}
-		{{{returnType}}} {{operationId}}ServerResult;
-		{{/returnContainer}}
-		{{^returnContainer}}
-		{{{returnType}}} {{operationId}}ServerResult;
-		{{/returnContainer}}
-		{{/returnType}}
+		{{operationId}}CallbackFunction {{operationId}}Callback;
 		{{/operation}}
 	};
 }

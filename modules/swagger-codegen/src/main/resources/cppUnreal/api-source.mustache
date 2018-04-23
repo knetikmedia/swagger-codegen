@@ -3,18 +3,19 @@
 
 #include "{{classname}}.h"
 
-#include "KnetikCloudLogger.h"
+#include "KnetikCloudClient.h"
 #include "KnetikCloudJson.h"
+#include "KnetikCloudLogger.h"
+
 #include <Runtime/Json/Public/Serialization/JsonReader.h>
 #include <Runtime/Json/Public/Serialization/JsonSerializer.h>
 
+
 namespace KnetikCloud
 {
-	{{classname}}::{{classname}}(TSharedPtr<KnetikCloudClient> Client)
+	{{classname}}::{{classname}}()
 	{
-		KnetikClient = Client;
 		{{#operation}}
-
 		b{{operationId}}IsComplete = false;
 		b{{operationId}}WasSuccessful = false;
 		{{#returnType}}
@@ -41,7 +42,7 @@ namespace KnetikCloud
 	}
 
 	{{#operation}}
-	void {{classname}}::{{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
+	void {{classname}}::{{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}}, {{/allParams}}{{operationId}}CallbackFunction Callback)
 	{
 		{{#allParams}}{{#required}}{{^isPrimitiveType}}{{^isContainer}}
 		if ({{paramName}}.IsValid())
@@ -49,7 +50,7 @@ namespace KnetikCloud
 			KnetikCloudLogger::LogError(400, "Missing required parameter '{{paramName}}' when calling {{classname}}->{{operationId}}");
 			return;
 		}
-
+		
 		{{/isContainer}}{{/isPrimitiveType}}{{/required}}{{/allParams}}
 		FString Path(TEXT("{{{path}}}"));
 		TMap<FString, FString> QueryParams;
@@ -66,11 +67,37 @@ namespace KnetikCloud
 		
 		b{{operationId}}IsComplete = false;
 		b{{operationId}}WasSuccessful = false;
+		{{operationId}}Callback = Callback;
 
         {{#allParams}}
         {{^isBodyParam}}
         {{^isPathParam}}
 		{{#isPrimitiveType}}
+		{{#isString}}
+		{{#isQueryParam}}
+		if ({{paramName}}.Len() > 0)
+		{
+			QueryParams.Add("{{baseName}}", KnetikCloudJson::ConvertParameterToContentString({{paramName}}));
+		}
+		{{/isQueryParam}}
+		{{#isHeaderParam}}
+		if ({{paramName}}.Len() > 0)
+		{
+			HeaderParams.Add("{{baseName}}", KnetikCloudJson::ConvertParameterToContentString({{paramName}}));
+		}
+		{{/isHeaderParam}}
+		{{#isFormParam}}
+		{{#isFile}}
+		{{/isFile}}
+		{{^isFile}}
+		if ({{paramName}}.Len() > 0)
+		{
+			FormParams.Add("{{baseName}}", KnetikCloudJson::ConvertParameterToContentString({{paramName}}));
+		}
+		{{/isFile}}
+		{{/isFormParam}}
+		{{/isString}}
+		{{^isString}}
 		{{#isQueryParam}}
 		QueryParams.Add("{{baseName}}", KnetikCloudJson::ConvertParameterToContentString({{paramName}}));
 		{{/isQueryParam}}
@@ -84,6 +111,7 @@ namespace KnetikCloud
 		FormParams.Add("{{baseName}}", KnetikCloudJson::ConvertParameterToContentString({{paramName}}));
 		{{/isFile}}
 		{{/isFormParam}}
+		{{/isString}}
 		{{/isPrimitiveType}}
         {{^isPrimitiveType}}
 		if ({{paramName}} != nullptr)
@@ -152,10 +180,10 @@ namespace KnetikCloud
         {{/isApiKey}}
         {{/authMethods}}
 
-		TSharedRef<IHttpRequest> Request = KnetikClient->CreateRequest();
+		TSharedRef<IHttpRequest> Request = KnetikCloudClient::DefaultClient->CreateRequest();
 		Request->OnProcessRequestComplete().BindRaw(this, &{{classname}}::{{operationId}}OnResponseReceived);
 
-		KnetikClient->CallApi(
+		KnetikCloudClient::DefaultClient->CallApi(
 			Path, 			
 			"{{httpMethod}}", 
 			HeaderParams,
@@ -174,21 +202,6 @@ namespace KnetikCloud
 	{
 		return b{{operationId}}WasSuccessful;
 	}
-
-	{{#returnType}}
-	{{#returnContainer}}
-	const {{{returnType}}}& {{classname}}::{{operationId}}GetResult()
-	{
-		return {{operationId}}ServerResult;
-	}
-	{{/returnContainer}}
-	{{^returnContainer}}
-	{{{returnType}}} {{classname}}::{{operationId}}GetResult()
-	{
-		return {{operationId}}ServerResult;
-	}
-	{{/returnContainer}}
-	{{/returnType}}
 
 	void {{classname}}::{{operationId}}OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 	{
@@ -257,6 +270,18 @@ namespace KnetikCloud
 		{{/returnTypeIsPrimitive}}
 		{{/isMapContainer}}
 		{{/isListContainer}}
+		{{/returnType}}
+		
+		{{#returnType}}
+		{{#returnContainer}}
+		{{operationId}}Callback(b{{operationId}}WasSuccessful, {{operationId}}ServerResult);
+		{{/returnContainer}}
+		{{^returnContainer}}
+		{{operationId}}Callback(b{{operationId}}WasSuccessful, {{operationId}}ServerResult);
+		{{/returnContainer}}
+		{{/returnType}}
+		{{^returnType}}
+		{{operationId}}Callback(b{{operationId}}WasSuccessful);
 		{{/returnType}}
 	}
 
