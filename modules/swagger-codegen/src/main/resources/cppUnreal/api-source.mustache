@@ -183,6 +183,8 @@ namespace KnetikCloud
 		TSharedRef<IHttpRequest> Request = KnetikCloudClient::DefaultClient->CreateRequest();
 		Request->OnProcessRequestComplete().BindRaw(this, &{{classname}}::{{operationId}}OnResponseReceived);
 
+		KnetikCloudLogger::LogInfo("{{operationId}}: Sending server request...");
+
 		KnetikCloudClient::DefaultClient->CallApi(
 			Path, 			
 			"{{httpMethod}}", 
@@ -210,8 +212,11 @@ namespace KnetikCloud
 
 		if (!bWasSuccessful)
 		{
-			KnetikCloudLogger::LogError(500, "Error calling {{operationId}}: unexpected response type: " + Response->GetResponseCode());
+			KnetikCloudLogger::LogError(500, " {{operationId}}: Error, unexpected response code: " + Response->GetResponseCode());
+			return;
 		}
+
+		KnetikCloudLogger::LogInfo("{{operationId}}: Received response successfully.");
 
 		{{#returnType}}
 		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
