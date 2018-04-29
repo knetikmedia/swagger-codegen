@@ -46,6 +46,7 @@ namespace KnetikCloud
 		void {{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}},{{/allParams}} {{operationId}}CallbackFunction Callback);
 		bool {{operationId}}IsComplete() const;
 		bool {{operationId}}WasSuccessful() const;
+
 		{{#returnType}}
 		{{#returnContainer}}
 		{{{returnType}}} {{operationId}}ServerResult;
