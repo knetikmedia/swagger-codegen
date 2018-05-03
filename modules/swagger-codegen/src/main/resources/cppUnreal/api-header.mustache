@@ -43,7 +43,7 @@ namespace KnetikCloud
 		{{#allParams}}
 		/// <param name="{{paramName}}">{{description}}{{^required}} (optional{{#defaultValue}}, default to {{.}}{{/defaultValue}}){{/required}}</param>
 		{{/allParams}}
-		void {{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}},{{/allParams}} {{operationId}}CallbackFunction Callback);
+		void {{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}}, {{/allParams}}{{operationId}}CallbackFunction Callback);
 		bool {{operationId}}IsComplete() const;
 		bool {{operationId}}WasSuccessful() const;
 
