@@ -42,7 +42,12 @@ namespace KnetikCloud
 		bool {{name}}IsSet() const;
 		void Unset{{name}}();
 		{{/required}}
+		{{#isString}}
+		void Set{{name}}(const FString& Value);
+		{{/isString}}
+		{{^isString}}
 		void Set{{name}}({{{datatype}}} Value);
+		{{/isString}}
 		{{/isInherited}}
 		{{/vars}}
 

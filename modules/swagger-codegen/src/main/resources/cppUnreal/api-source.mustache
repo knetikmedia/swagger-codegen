@@ -51,11 +51,11 @@ namespace KnetikCloud
 		}
 		
 		{{/isContainer}}{{/isPrimitiveType}}{{/required}}{{/allParams}}
-		FString Path(TEXT("{{{path}}}"));
+		FString Path("{{{path}}}");
 		TArray<FString> AuthTypes;
 		TMap<FString, FString> QueryParams;
 		TMap<FString, FString> FormParams;
-		FString JsonBody(TEXT(""));
+		FString JsonBody("");
 
 		{{#pathParams}}
 		FString {{{paramName}}}Replacement("{");
@@ -225,19 +225,16 @@ namespace KnetikCloud
 			{{/isListContainer}}
 			{{^isListContainer}}
 			{{#isMapContainer}}
-/*
-			TSharedPtr<FJsonValue> JsonValueArray;
-			if (FJsonSerializer::Deserialize(JsonReader, JsonValueArray))
+			TSharedPtr<FJsonObject> JsonObject;
+			if (FJsonSerializer::Deserialize(JsonReader, JsonObject))
 			{
-				// TMAP TODO: Response Support
-				for (auto& ItemJson : JsonValueArray)
+				for (auto& KeyValuePair : JsonObject->Values)
 				{
 					{{{vendorExtensions.x-codegen-response.items.datatype}}} Item({{{vendorExtensions.x-codegen-response.items.defaultValue}}});
-					KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.items.datatype}}}>(ItemJson, Item);
-					//{{operationId}}ServerResult.Add(Item);
+					KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.items.datatype}}}>(KeyValuePair.Value, Item);
+					{{operationId}}ServerResult.Add(Item);
 				}
 			}
-*/
 			{{/isMapContainer}}
 			{{^isMapContainer}}
 			{{#returnTypeIsPrimitive}}
