@@ -213,7 +213,7 @@ namespace KnetikCloud
 			KnetikCloudLogger::LogInfo("{{operationId}} content string: " + ContentString);
 
 			{{#isListContainer}}
-			// ghornmoen TODO: LIST TEST THIS - is it an array, or is it contained by a parent object?
+			// ghornmoen TODO: LIST CONTAINER - TEST THIS - is it an array, or is it contained by a parent object?
 			TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(ContentString);
 			TArray<TSharedPtr<FJsonValue>> JsonValueArray;
 			if (FJsonSerializer::Deserialize(JsonReader, JsonValueArray))
@@ -222,17 +222,19 @@ namespace KnetikCloud
 				{
 					if (ItemJsonValue.IsValid())
 					{
-						{{#items.isPrimitiveType}}
+						{{#vendorExtensions.x-codegen-response.items.isPrimitiveType}}
 						{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{vendorExtensions.x-codegen-response.baseType}}}>(ItemJsonValue);
-						{{/items.isPrimitiveType}}
-						{{^items.isPrimitiveType}}
-						{{#items.isString}}
-						{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{vendorExtensions.x-codegen-response.baseType}}}>(ItemJsonValue);
-						{{/items.isString}}
-						{{^items.isString}}
-						{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::ObjectFromJsonValue<{{{vendorExtensions.x-codegen-response.baseType}}}>(ItemJsonValue);
-						{{/items.isString}}
-						{{/items.isPrimitiveType}}
+						{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
+						{{^vendorExtensions.x-codegen-response.items.isPrimitiveType}}
+						{{#vendorExtensions.x-codegen-response.items.isString}}
+						FString CurrentItem = KnetikCloudJson::FromJsonValue<FString>(ItemJsonValue);
+						{{/vendorExtensions.x-codegen-response.items.isString}}
+						{{^vendorExtensions.x-codegen-response.items.isString}}
+						{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem;
+						// ghornmoen TODO: waiting on Knetik fixes!!
+						KnetikCloudJson::ObjectFromJsonValue<>(ItemJsonValue, CurrentItem);
+						{{/vendorExtensions.x-codegen-response.items.isString}}
+						{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
 						{{operationId}}ServerResult.Add(CurrentItem);
 					}
 					else
@@ -251,18 +253,19 @@ namespace KnetikCloud
 			{
 				for (auto& KeyValuePair : JsonObject->Values)
 				{
-					{{#items.isPrimitiveType}}
+					{{#vendorExtensions.x-codegen-response.items.isPrimitiveType}}
 					{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{vendorExtensions.x-codegen-response.baseType}}}>(KeyValuePair.Value);
-					{{/items.isPrimitiveType}}
-					{{^items.isPrimitiveType}}
-					{{#items.isString}}
-					{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{vendorExtensions.x-codegen-response.baseType}}}>(KeyValuePair.Value);
-					{{/items.isString}}
-					{{^items.isString}}
-					{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::ObjectFromJsonValue<{{{vendorExtensions.x-codegen-response.items.datatype}}}>(KeyValuePair.Value);
-					{{/items.isString}}
-					{{/items.isPrimitiveType}}
-					{{operationId}}ServerResult.Add(CurrentItem);
+					{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
+					{{^vendorExtensions.x-codegen-response.items.isPrimitiveType}}
+					{{#vendorExtensions.x-codegen-response.items.isString}}
+					FString CurrentItem = KnetikCloudJson::FromJsonValue<FString>(KeyValuePair.Value);
+					{{/vendorExtensions.x-codegen-response.items.isString}}
+					{{^vendorExtensions.x-codegen-response.items.isString}}
+					{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem;
+					KnetikCloudJson::ObjectFromJsonValue<{{{vendorExtensions.x-codegen-response.items.datatype}}}>(KeyValuePair.Value, CurrentItem);
+					{{/vendorExtensions.x-codegen-response.items.isString}}
+					{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
+					{{operationId}}ServerResult.Add(KeyValuePair.Key, CurrentItem);
 				}
 			}
 			{{/isMapContainer}}
@@ -309,7 +312,7 @@ namespace KnetikCloud
 			{
 				if (JsonObject.IsValid())
 				{
-					 {{operationId}}ServerResult = KnetikCloudJson::ObjectFromJsonObject<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject);
+					KnetikCloudJson::ObjectFromJsonObject<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject, {{operationId}}ServerResult);
 				}
 				else
 				{

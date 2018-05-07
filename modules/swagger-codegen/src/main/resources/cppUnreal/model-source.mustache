@@ -123,7 +123,7 @@ namespace KnetikCloud
 		{{#vars}}
 		{{^isInherited}}
 		{{#isListContainer}}
-
+		// LIST CONTAINER
 		m{{name}}.Empty();
 		TArray<TSharedPtr<FJsonValue>> {{name}}JsonValueArray = JsonObject->GetArrayField("{{baseName}}");
 		for (auto& ItemJsonValue : {{name}}JsonValueArray)
@@ -136,7 +136,8 @@ namespace KnetikCloud
 			{{{items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{items.baseType}}}>(ItemJsonValue);
 			{{/items.isString}}
 			{{^items.isString}}
-			{{{items.datatype}}} CurrentItem = KnetikCloudJson::ObjectFromJsonValue<{{{items.baseType}}}>(ItemJsonValue);
+			{{{items.datatype}}} CurrentItem;
+			KnetikCloudJson::ObjectFromJsonValue<{{{items.baseType}}}>(ItemJsonValue, CurrentItem);
 			{{/items.isString}}
 			{{/items.isPrimitiveType}}
 			m{{name}}.Add(CurrentItem);
@@ -144,7 +145,7 @@ namespace KnetikCloud
 		{{/isListContainer}}
 		{{^isListContainer}}
 		{{#isMapContainer}}
-
+		// MAP CONTAINER
 		m{{name}}.Empty();
 		TSharedPtr<FJsonObject> {{name}}JsonObject = JsonObject->GetObjectField("{{baseName}}");
 		if ({{name}}JsonObject.IsValid())
@@ -161,7 +162,8 @@ namespace KnetikCloud
 				{{{items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{items.baseType}}}>(KeyValuePair.Value);
 				{{/items.isString}}
 				{{^items.isString}}
-				{{{items.datatype}}} CurrentItem = KnetikCloudJson::ObjectFromJsonValue<{{{items.baseType}}}>(KeyValuePair.Value);
+				{{{items.datatype}}} CurrentItem;
+				KnetikCloudJson::ObjectFromJsonValue<{{{items.baseType}}}>(KeyValuePair.Value, CurrentItem);
 				{{/items.isString}}
 				{{/items.isPrimitiveType}}
 				m{{name}}.Add(Key, CurrentItem);
