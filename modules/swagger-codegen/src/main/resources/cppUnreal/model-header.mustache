@@ -24,8 +24,13 @@ namespace KnetikCloud
 		{{classname}}();
 		virtual ~{{classname}}();
  
-		TSharedPtr<FJsonObject> ToJson() const;
-		void FromJson(TSharedPtr<FJsonObject> JsonObject);
+		virtual TSharedPtr<FJsonObject> ToJson() const;
+		virtual void FromJson(TSharedPtr<FJsonObject> JsonObject);
+		{{#vendorExtensions.x-discriminator-value}}
+
+		static FString GetSubtypeString();
+		static TSharedPtr<{{{parent}}}> CreateSubtype();
+		{{/vendorExtensions.x-discriminator-value}}
 		{{#vars}}
 		{{^isInherited}}
 
@@ -50,15 +55,15 @@ namespace KnetikCloud
 		{{/isString}}
 		{{/isInherited}}
 		{{/vars}}
-
+		
 	protected:
 		{{#vars}}
 		{{^isInherited}}
 		{{{datatype}}} m{{name}};
 		{{^required}}bool b{{name}}IsSet;
 		{{/required}}
-		{{/isInherited}}
 
+		{{/isInherited}}
 		{{/vars}}
 	};
 }

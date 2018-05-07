@@ -43,14 +43,20 @@ namespace KnetikCloud
 	{{#operation}}
 	void {{classname}}::{{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}}, {{/allParams}}{{operationId}}CallbackFunction Callback)
 	{
-		{{#allParams}}{{#required}}{{^isPrimitiveType}}{{^isContainer}}
+		{{#allParams}}
+		{{#required}}
+		{{^isPrimitiveType}}
+		{{^isContainer}}
 		if ({{paramName}}.IsValid())
 		{
 			KnetikCloudLogger::LogError(400, "Missing required parameter '{{paramName}}' when calling {{classname}}->{{operationId}}");
 			return;
 		}
 		
-		{{/isContainer}}{{/isPrimitiveType}}{{/required}}{{/allParams}}
+		{{/isContainer}}
+		{{/isPrimitiveType}}
+		{{/required}}
+		{{/allParams}}
 		FString Path("{{{path}}}");
 		TArray<FString> AuthTypes;
 		TMap<FString, FString> QueryParams;
@@ -68,11 +74,10 @@ namespace KnetikCloud
 		b{{operationId}}WasSuccessful = false;
 		{{operationId}}Callback = Callback;
 
-        {{#allParams}}
-        {{^isBodyParam}}
-        {{^isPathParam}}
+		{{#allParams}}
+		{{^isBodyParam}}
+		{{^isPathParam}}
 		{{#isQueryParam}}
-		{{#isPrimitiveType}}
 		{{#isString}}
 		if ({{paramName}}.Len() > 0)
 		{
@@ -80,19 +85,19 @@ namespace KnetikCloud
 		}
 		{{/isString}}
 		{{^isString}}
+		{{#isPrimitiveType}}
 		QueryParams.Add("{{baseName}}", KnetikCloudClient::ConvertParameterToContentString({{paramName}}));
-		{{/isString}}
 		{{/isPrimitiveType}}
 		{{^isPrimitiveType}}
-		if ({{paramName}} != nullptr)
-        {
-            QueryParams.Add("{{baseName}}", KnetikCloudClient::ConvertParameterToContentString({{paramName}}));
+		if ({{paramName}}.IsValid())
+		{
+			QueryParams.Add("{{baseName}}", KnetikCloudClient::ConvertParameterToContentString({{paramName}}));
 		}
 		{{/isPrimitiveType}}
+		{{/isString}}
 
 		{{/isQueryParam}}
 		{{#isFormParam}}
-		{{#isPrimitiveType}}
 		{{#isString}}
 		if ({{paramName}}.Len() > 0)
 		{
@@ -100,56 +105,63 @@ namespace KnetikCloud
 		}
 		{{/isString}}
 		{{^isString}}
+		{{#isPrimitiveType}}
 		FormParams.Add("{{baseName}}", KnetikCloudClient::ConvertParameterToContentString({{paramName}}));
-		{{/isString}}
 		{{/isPrimitiveType}}
 		{{^isPrimitiveType}}
-		if ({{paramName}} != nullptr)
-        {
-            FormParams.Add("{{baseName}}", KnetikCloudClient::ConvertParameterToContentString({{paramName}}));
+		if ({{paramName}}.IsValid())
+		{
+			FormParams.Add("{{baseName}}", KnetikCloudClient::ConvertParameterToContentString({{paramName}}));
 		}
 		{{/isPrimitiveType}}
+		{{/isString}}
 
 		{{/isFormParam}}
-        {{/isPathParam}}
-        {{/isBodyParam}}
-        {{/allParams}}
+		{{/isPathParam}}
+		{{/isBodyParam}}
+		{{/allParams}}
 		{{#bodyParam}}
 		TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject());
-		{{#isPrimitiveType}}
-		KnetikCloudJson::AddParameterToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", {{paramName}});
-		JsonBody = KnetikCloudJson::ConvertJsonObjectToString(JsonObject);
-		{{/isPrimitiveType}}
-		{{^isPrimitiveType}}
 		{{#isListContainer}}
 		TArray <TSharedPtr<FJsonValue>> JsonValueArray;
 		for (auto& Item : {{paramName}})
 		{
-			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ConvertParameterToJsonValue<{{{vendorExtensions.x-codegen-response.items.dataType}}}>(Item);
+			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<{{{vendorExtensions.x-codegen-response.items.dataType}}}>(Item);
 			JsonValueArray.Add(ItemJsonValue);
 		}
 		
 		JsonObject->SetArrayField("{{paramName}}", JsonValueArray);
-		JsonBody = KnetikCloudJson::ConvertJsonObjectToString(JsonObject);
 		{{/isListContainer}}
 		{{^isListContainer}}
-		KnetikCloudJson::AddParameterToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", {{paramName}});
-		JsonBody = KnetikCloudJson::ConvertJsonObjectToString(JsonObject);
-
-		{{/isListContainer}}
+		{{#isString}}
+		KnetikCloudJson::AddToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", {{paramName}});
+		{{/isString}}
+		{{^isString}}
+		{{#isPrimitiveType}}
+		KnetikCloudJson::AddToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", {{paramName}});
 		{{/isPrimitiveType}}
-		{{/bodyParam}}
-        {{#authMethods}}
-		AuthTypes.Add("{{name}}");
-        {{/authMethods}}
+		{{^isPrimitiveType}}
+		if ({{paramName}}.IsValid())
+		{
+			KnetikCloudJson::AddObjectToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", {{paramName}});
+		}
 
+		{{/isPrimitiveType}}
+		{{/isString}}
+		{{/isListContainer}}
+		KnetikCloudJson::ToContentString(JsonObject, JsonBody);
+
+		{{/bodyParam}}
+		{{#authMethods}}
+		AuthTypes.Add("{{name}}");
+		{{/authMethods}}
+
+		// Make the actual request...
 		TSharedRef<IHttpRequest> Request = KnetikCloudClient::DefaultClient->CreateRequest();
 		Request->OnProcessRequestComplete().BindRaw(this, &{{classname}}::{{operationId}}OnResponseReceived);
-
 		KnetikCloudLogger::LogInfo("{{operationId}}: Sending server request...");
-
 		KnetikCloudClient::DefaultClient->CallApi(
-			Path, 			
+			Path,
 			"{{httpMethod}}",
 			AuthTypes,
 			QueryParams,
@@ -200,19 +212,28 @@ namespace KnetikCloud
 			FString ContentString = Response->GetContentAsString();
 			KnetikCloudLogger::LogInfo("{{operationId}} content string: " + ContentString);
 
-			TSharedRef<TJsonReader<TCHAR>> JsonReader = TJsonReaderFactory<TCHAR>::Create(ContentString);
-
 			{{#isListContainer}}
+			// ghornmoen TODO: LIST TEST THIS - is it an array, or is it contained by a parent object?
+			TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(ContentString);
 			TArray<TSharedPtr<FJsonValue>> JsonValueArray;
 			if (FJsonSerializer::Deserialize(JsonReader, JsonValueArray))
 			{
-				for (auto& ItemJson : JsonValueArray)
+				for (auto& ItemJsonValue : JsonValueArray)
 				{
-					if (ItemJson.IsValid())
+					if (ItemJsonValue.IsValid())
 					{
-						{{{vendorExtensions.x-codegen-response.items.datatype}}} Item({{{vendorExtensions.x-codegen-response.items.defaultValue}}});
-						KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.items.datatype}}}>(ItemJson, Item);
-						{{operationId}}ServerResult.Add(Item);
+						{{#items.isPrimitiveType}}
+						{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{vendorExtensions.x-codegen-response.baseType}}}>(ItemJsonValue);
+						{{/items.isPrimitiveType}}
+						{{^items.isPrimitiveType}}
+						{{#items.isString}}
+						{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{vendorExtensions.x-codegen-response.baseType}}}>(ItemJsonValue);
+						{{/items.isString}}
+						{{^items.isString}}
+						{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::ObjectFromJsonValue<{{{vendorExtensions.x-codegen-response.baseType}}}>(ItemJsonValue);
+						{{/items.isString}}
+						{{/items.isPrimitiveType}}
+						{{operationId}}ServerResult.Add(CurrentItem);
 					}
 					else
 					{
@@ -226,24 +247,35 @@ namespace KnetikCloud
 			{{^isListContainer}}
 			{{#isMapContainer}}
 			TSharedPtr<FJsonObject> JsonObject;
-			if (FJsonSerializer::Deserialize(JsonReader, JsonObject))
+			if (KnetikCloudJson::FromContentString(ContentString, JsonObject))
 			{
 				for (auto& KeyValuePair : JsonObject->Values)
 				{
-					{{{vendorExtensions.x-codegen-response.items.datatype}}} Item({{{vendorExtensions.x-codegen-response.items.defaultValue}}});
-					KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.items.datatype}}}>(KeyValuePair.Value, Item);
-					{{operationId}}ServerResult.Add(Item);
+					{{#items.isPrimitiveType}}
+					{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{vendorExtensions.x-codegen-response.baseType}}}>(KeyValuePair.Value);
+					{{/items.isPrimitiveType}}
+					{{^items.isPrimitiveType}}
+					{{#items.isString}}
+					{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{vendorExtensions.x-codegen-response.baseType}}}>(KeyValuePair.Value);
+					{{/items.isString}}
+					{{^items.isString}}
+					{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::ObjectFromJsonValue<{{{vendorExtensions.x-codegen-response.items.datatype}}}>(KeyValuePair.Value);
+					{{/items.isString}}
+					{{/items.isPrimitiveType}}
+					{{operationId}}ServerResult.Add(CurrentItem);
 				}
 			}
 			{{/isMapContainer}}
 			{{^isMapContainer}}
 			{{#returnTypeIsPrimitive}}
+			// ghornmoen TODO: PRIMITIVE TEST THIS - is it a primitive, or is it contained by a parent object?
+			TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(ContentString);
 			TSharedPtr<FJsonValue> JsonValue;
 			if (FJsonSerializer::Deserialize(JsonReader, JsonValue))
 			{
 				if (JsonValue.IsValid())
 				{
-					KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonValue, {{operationId}}ServerResult);
+					{{operationId}}ServerResult = KnetikCloudJson::FromJsonValue<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonValue);
 				}
 				else
 				{
@@ -254,12 +286,14 @@ namespace KnetikCloud
 			{{/returnTypeIsPrimitive}}
 			{{^returnTypeIsPrimitive}}
 			{{#vendorExtensions.x-codegen-response.isString}}
+			TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(ContentString);
+			// ghornmoen TODO: STRING TEST THIS - is it a string, or is it contained by a parent object?
 			TSharedPtr<FJsonValue> JsonValue;
 			if (FJsonSerializer::Deserialize(JsonReader, JsonValue))
 			{
 				if (JsonValue.IsValid())
 				{
-					KnetikCloudJson::ConvertJsonValueToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonValue, {{operationId}}ServerResult);
+					{{operationId}}ServerResult = KnetikCloudJson::FromJsonValue<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonValue);
 				}
 				else
 				{
@@ -269,12 +303,13 @@ namespace KnetikCloud
 			}
 			{{/vendorExtensions.x-codegen-response.isString}}
 			{{^vendorExtensions.x-codegen-response.isString}}
+			// ghornmoen TODO: OBJECT FAIRLY CERTAIN THIS WAS TESTED BY AuthTypes
 			TSharedPtr<FJsonObject> JsonObject;
-			if (FJsonSerializer::Deserialize(JsonReader, JsonObject))
+			if (KnetikCloudJson::FromContentString(ContentString, JsonObject))
 			{
 				if (JsonObject.IsValid())
 				{
-					KnetikCloudJson::ConvertJsonObjectToParameter<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject, {{operationId}}ServerResult);
+					 {{operationId}}ServerResult = KnetikCloudJson::ObjectFromJsonObject<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject);
 				}
 				else
 				{

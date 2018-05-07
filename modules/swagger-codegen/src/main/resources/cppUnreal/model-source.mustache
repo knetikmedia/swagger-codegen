@@ -49,75 +49,64 @@ namespace KnetikCloud
 		{{/parent}}
 		{{#vars}}
 		{{^isInherited}}
-		{{#isPrimitiveType}}
-		{{^isListContainer}}
-		{{^isMapContainer}}
-		{{#required}}
-
-		KnetikCloudJson::AddParameterToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", m{{name}});
-		{{/required}}
-		{{^required}}
-
-		if (b{{name}}IsSet)
-		{
-			KnetikCloudJson::AddParameterToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", m{{name}});
-		}
-		{{/required}}
-		{{/isMapContainer}}
-		{{/isListContainer}}
-		{{/isPrimitiveType}}
 		{{#isListContainer}}
 
 		TArray<TSharedPtr<FJsonValue>> {{name}}JsonValueArray;
 		{{name}}JsonValueArray.Reserve(m{{name}}.Num());
-		for (auto& Item : m{{name}})
+		for (auto& CurrentItem : m{{name}})
 		{
-			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ConvertParameterToJsonValue<{{{items.baseType}}}>(Item);
+			{{#items.isPrimitiveType}}
+			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<{{{items.baseType}}}>(CurrentItem);
+			{{/items.isPrimitiveType}}
+			{{^items.isPrimitiveType}}
+			{{#items.isString}}
+			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<{{{items.baseType}}}>(CurrentItem);
+			{{/items.isString}}
+			{{^items.isString}}
+			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ObjectToJsonValue<{{{items.baseType}}}>(CurrentItem);
+			{{/items.isString}}
+			{{/items.isPrimitiveType}}
 			{{name}}JsonValueArray.Add(ItemJsonValue);
 		}
 
-		{{#required}}
 		JsonObject->SetArrayField("{{baseName}}", {{name}}JsonValueArray);
-		{{/required}}
-		{{^required}}
-		if ({{name}}JsonValueArray.Num() > 0)
-		{
-			JsonObject->SetArrayField("{{baseName}}", {{name}}JsonValueArray);
-		}
-		{{/required}}
 		{{/isListContainer}}
+		{{^isListContainer}}
 		{{#isMapContainer}}
-		
+
 		TSharedPtr<FJsonObject> {{name}}JsonMap = MakeShareable(new FJsonObject());
 		for (auto& KeyValuePair : m{{name}})
 		{
-			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ConvertParameterToJsonValue<{{{items.baseType}}}>(KeyValuePair.Value);
+			{{#items.isPrimitiveType}}
+			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<{{{items.baseType}}}>(KeyValuePair.Value);
+			{{/items.isPrimitiveType}}
+			{{^items.isPrimitiveType}}
+			{{#items.isString}}
+			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<{{{items.baseType}}}>(KeyValuePair.Value);
+			{{/items.isString}}
+			{{^items.isString}}
+			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ObjectToJsonValue<{{{items.baseType}}}>(KeyValuePair.Value);
+			{{/items.isString}}
+			{{/items.isPrimitiveType}}
 			{{name}}JsonMap->Values.Add(KeyValuePair.Key, ItemJsonValue);
 		}
 
-		{{#required}}
 		JsonObject->SetObjectField("{{baseName}}", {{name}}JsonMap);
-		{{/required}}
-		{{^required}}
-		if ({{name}}JsonMap->Values.Num() > 0)
-		{
-			JsonObject->SetObjectField("{{baseName}}", {{name}}JsonMap);
-		}
-		{{/required}}
 		{{/isMapContainer}}
-		{{^isListContainer}}
 		{{^isMapContainer}}
-		{{^isPrimitiveType}}
+		{{#isPrimitiveType}}
 
-		{{^required}}
-		if (b{{name}}IsSet)
-		{
-			KnetikCloudJson::AddParameterToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", m{{name}});
-		}
-		{{/required}}
-		{{#required}}
-		KnetikCloudJson::AddParameterToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", m{{name}});
-		{{/required}}
+		KnetikCloudJson::AddToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", m{{name}});
+		{{/isPrimitiveType}}
+		{{^isPrimitiveType}}
+		{{#isString}}
+
+		KnetikCloudJson::AddToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", m{{name}});
+		{{/isString}}
+		{{^isString}}
+		
+		KnetikCloudJson::AddObjectToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", m{{name}});
+		{{/isString}}
 		{{/isPrimitiveType}}
 		{{/isMapContainer}}
 		{{/isListContainer}}
@@ -133,89 +122,85 @@ namespace KnetikCloud
 		{{/parent}}
 		{{#vars}}
 		{{^isInherited}}
-		{{#isPrimitiveType}}
-		{{^isListContainer}}
-		{{^isMapContainer}}
-
-		if (JsonObject->HasField("{{baseName}}"))
-		{
-			{{{datatype}}} {{name}}Item({{{defaultValue}}});
-			KnetikCloudJson::GetParameterFromJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", {{name}}Item);
-			Set{{name}}({{name}}Item);
-		}
-		{{/isMapContainer}}
-		{{/isListContainer}}
-		{{/isPrimitiveType}}
 		{{#isListContainer}}
 
 		m{{name}}.Empty();
-		if (JsonObject->HasField("{{baseName}}"))
+		TArray<TSharedPtr<FJsonValue>> {{name}}JsonValueArray = JsonObject->GetArrayField("{{baseName}}");
+		for (auto& ItemJsonValue : {{name}}JsonValueArray)
 		{
-			TArray<TSharedPtr<FJsonValue>> {{name}}JsonValueArray = JsonObject->GetArrayField("{{baseName}}");
-			for (auto& ItemJsonValue : {{name}}JsonValueArray)
-			{
-				{{{items.datatype}}} {{name}}Item({{{items.defaultValue}}});
-				KnetikCloudJson::ConvertJsonValueToParameter<{{{items.baseType}}}>(ItemJsonValue, {{name}}Item);
-				m{{name}}.Add({{name}}Item);
-			}
+			{{#items.isPrimitiveType}}
+			{{{items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{items.baseType}}}>(ItemJsonValue);
+			{{/items.isPrimitiveType}}
+			{{^items.isPrimitiveType}}
+			{{#items.isString}}
+			{{{items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{items.baseType}}}>(ItemJsonValue);
+			{{/items.isString}}
+			{{^items.isString}}
+			{{{items.datatype}}} CurrentItem = KnetikCloudJson::ObjectFromJsonValue<{{{items.baseType}}}>(ItemJsonValue);
+			{{/items.isString}}
+			{{/items.isPrimitiveType}}
+			m{{name}}.Add(CurrentItem);
 		}
 		{{/isListContainer}}
+		{{^isListContainer}}
 		{{#isMapContainer}}
 
 		m{{name}}.Empty();
-		if (JsonObject->HasField("{{baseName}}"))
+		TSharedPtr<FJsonObject> {{name}}JsonObject = JsonObject->GetObjectField("{{baseName}}");
+		if ({{name}}JsonObject.IsValid())
 		{
-			TSharedPtr<FJsonObject> {{name}}JsonObject = JsonObject->GetObjectField("{{baseName}}");
-
 			TMap<FString, TSharedPtr<FJsonValue>> {{name}}JsonValuesMap = {{name}}JsonObject->Values;
 			for (auto& KeyValuePair : {{name}}JsonValuesMap)
 			{
 				FString Key = KeyValuePair.Key;
 				{{#items.isPrimitiveType}}
-				{{{items.datatype}}} {{name}}Item({{{items.defaultValue}}});
-				KnetikCloudJson::ConvertJsonValueToParameter<{{{items.baseType}}}>(KeyValuePair.Value, {{name}}Item);
-				m{{name}}.Add(Key, {{name}}Item);
+				{{{items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{items.baseType}}}>(KeyValuePair.Value);
 				{{/items.isPrimitiveType}}
 				{{^items.isPrimitiveType}}
 				{{#items.isString}}
-				{{{items.datatype}}} {{name}}Item({{{items.defaultValue}}});
-				KnetikCloudJson::ConvertJsonValueToParameter<{{{items.baseType}}}>(KeyValuePair.Value, {{name}}Item);
-				m{{name}}.Add(Key, {{name}}Item);
+				{{{items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{items.baseType}}}>(KeyValuePair.Value);
 				{{/items.isString}}
 				{{^items.isString}}
-				TSharedPtr<FJsonObject> SubJsonObject = KeyValuePair.Value->AsObject();
-
-				FString TypeString = "<TYPE_MISSING>";
-				if (SubJsonObject->HasField(KnetikCloudConstants::JsonTypeString))
-				{
-					TypeString = SubJsonObject->GetStringField(KnetikCloudConstants::JsonTypeString);
-				}
-
-				{{{items.datatype}}} SubItem = KnetikCloudTypeFactory::CreateSubtype<{{{items.datatype}}}>(TypeString);
-				SubItem->FromJson(SubJsonObject);
-				m{{name}}.Add(Key, SubItem);
-
+				{{{items.datatype}}} CurrentItem = KnetikCloudJson::ObjectFromJsonValue<{{{items.baseType}}}>(KeyValuePair.Value);
 				{{/items.isString}}
 				{{/items.isPrimitiveType}}
+				m{{name}}.Add(Key, CurrentItem);
 			}
 		}
 		{{/isMapContainer}}
-		{{^isListContainer}}
 		{{^isMapContainer}}
-		{{^isPrimitiveType}}
+		{{#isPrimitiveType}}
 
-		{{{datatype}}} {{name}}Item({{{defaultValue}}});
-		if (JsonObject->HasField("{{baseName}}"))
-		{
-			KnetikCloudJson::GetParameterFromJsonObject<{{{items.baseType}}}>(JsonObject, "{{baseName}}", {{name}}Item);
-		}
+		{{{datatype}}} {{name}}Item = KnetikCloudJson::GetFromJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}");
 		Set{{name}}({{name}}Item);
+		{{/isPrimitiveType}}
+		{{^isPrimitiveType}}
+		{{#isString}}
+
+		{{{datatype}}} {{name}}Item = KnetikCloudJson::GetFromJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}");
+		{{/isString}}
+		{{^isString}}
+		{{{datatype}}} {{name}}Item = KnetikCloudJson::GetObjectFromJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}");
+		Set{{name}}({{name}}Item);
+		{{/isString}}
 		{{/isPrimitiveType}}
 		{{/isMapContainer}}
 		{{/isListContainer}}
 		{{/isInherited}}
 		{{/vars}}
 	}
+	{{#vendorExtensions.x-discriminator-value}}
+
+	FString {{classname}}::GetSubtypeString()
+	{
+		return "{{vendorExtensions.x-discriminator-value}}";
+	}
+	
+	TSharedPtr<{{{parent}}}> {{classname}}::CreateSubtype()
+	{
+		return TSharedPtr<{{{parent}}}>(new {{classname}}());
+	}
+	{{/vendorExtensions.x-discriminator-value}}
 
 	{{#vars}}
 	{{^isInherited}}
