@@ -230,7 +230,7 @@ namespace KnetikCloud
 						{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{vendorExtensions.x-codegen-response.baseType}}}>(ItemJsonValue);
 						{{/items.isString}}
 						{{^items.isString}}
-						{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::ObjectFromJsonValue<{{{vendorExtensions.x-codegen-response.baseType}}}>(ItemJsonValue);
+						{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::ObjectFromJsonValue<{{{vendorExtensions.x-codegen-response.items.baseType}}}>(ItemJsonValue);
 						{{/items.isString}}
 						{{/items.isPrimitiveType}}
 						{{operationId}}ServerResult.Add(CurrentItem);
