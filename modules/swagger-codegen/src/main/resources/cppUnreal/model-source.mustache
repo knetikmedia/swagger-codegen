@@ -55,17 +55,7 @@ namespace KnetikCloud
 		{{name}}JsonValueArray.Reserve(m{{name}}.Num());
 		for (auto& CurrentItem : m{{name}})
 		{
-			{{#items.isPrimitiveType}}
-			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<{{{items.baseType}}}>(CurrentItem);
-			{{/items.isPrimitiveType}}
-			{{^items.isPrimitiveType}}
-			{{#items.isString}}
-			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<{{{items.baseType}}}>(CurrentItem);
-			{{/items.isString}}
-			{{^items.isString}}
-			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ObjectToJsonValue<{{{items.baseType}}}>(CurrentItem);
-			{{/items.isString}}
-			{{/items.isPrimitiveType}}
+			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<>(CurrentItem);
 			{{name}}JsonValueArray.Add(ItemJsonValue);
 		}
 
@@ -77,17 +67,7 @@ namespace KnetikCloud
 		TSharedPtr<FJsonObject> {{name}}JsonMap = MakeShareable(new FJsonObject());
 		for (auto& KeyValuePair : m{{name}})
 		{
-			{{#items.isPrimitiveType}}
-			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<{{{items.baseType}}}>(KeyValuePair.Value);
-			{{/items.isPrimitiveType}}
-			{{^items.isPrimitiveType}}
-			{{#items.isString}}
-			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<{{{items.baseType}}}>(KeyValuePair.Value);
-			{{/items.isString}}
-			{{^items.isString}}
-			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ObjectToJsonValue<{{{items.baseType}}}>(KeyValuePair.Value);
-			{{/items.isString}}
-			{{/items.isPrimitiveType}}
+			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<>(KeyValuePair.Value);
 			{{name}}JsonMap->Values.Add(KeyValuePair.Key, ItemJsonValue);
 		}
 
@@ -128,18 +108,8 @@ namespace KnetikCloud
 		TArray<TSharedPtr<FJsonValue>> {{name}}JsonValueArray = JsonObject->GetArrayField("{{baseName}}");
 		for (auto& ItemJsonValue : {{name}}JsonValueArray)
 		{
-			{{#items.isPrimitiveType}}
-			{{{items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{items.baseType}}}>(ItemJsonValue);
-			{{/items.isPrimitiveType}}
-			{{^items.isPrimitiveType}}
-			{{#items.isString}}
-			{{{items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{items.baseType}}}>(ItemJsonValue);
-			{{/items.isString}}
-			{{^items.isString}}
 			{{{items.datatype}}} CurrentItem;
-			KnetikCloudJson::ObjectFromJsonValue<{{{items.baseType}}}>(ItemJsonValue, CurrentItem);
-			{{/items.isString}}
-			{{/items.isPrimitiveType}}
+			KnetikCloudJson::FromJsonValue<>(ItemJsonValue, CurrentItem);
 			m{{name}}.Add(CurrentItem);
 		}
 		{{/isListContainer}}
@@ -153,20 +123,9 @@ namespace KnetikCloud
 			TMap<FString, TSharedPtr<FJsonValue>> {{name}}JsonValuesMap = {{name}}JsonObject->Values;
 			for (auto& KeyValuePair : {{name}}JsonValuesMap)
 			{
-				FString Key = KeyValuePair.Key;
-				{{#items.isPrimitiveType}}
-				{{{items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{items.baseType}}}>(KeyValuePair.Value);
-				{{/items.isPrimitiveType}}
-				{{^items.isPrimitiveType}}
-				{{#items.isString}}
-				{{{items.datatype}}} CurrentItem = KnetikCloudJson::FromJsonValue<{{{items.baseType}}}>(KeyValuePair.Value);
-				{{/items.isString}}
-				{{^items.isString}}
 				{{{items.datatype}}} CurrentItem;
-				KnetikCloudJson::ObjectFromJsonValue<{{{items.baseType}}}>(KeyValuePair.Value, CurrentItem);
-				{{/items.isString}}
-				{{/items.isPrimitiveType}}
-				m{{name}}.Add(Key, CurrentItem);
+				KnetikCloudJson::FromJsonValue<>(KeyValuePair.Value, CurrentItem);
+				m{{name}}.Add(KeyValuePair.Key, CurrentItem);
 			}
 		}
 		{{/isMapContainer}}
