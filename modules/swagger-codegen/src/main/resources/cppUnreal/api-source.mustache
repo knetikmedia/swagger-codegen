@@ -133,21 +133,7 @@ namespace KnetikCloud
 		JsonObject->SetArrayField("{{paramName}}", JsonValueArray);
 		{{/isListContainer}}
 		{{^isListContainer}}
-		{{#isString}}
 		KnetikCloudJson::AddToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", {{paramName}});
-		{{/isString}}
-		{{^isString}}
-		{{#isPrimitiveType}}
-		KnetikCloudJson::AddToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", {{paramName}});
-		{{/isPrimitiveType}}
-		{{^isPrimitiveType}}
-		if ({{paramName}}.IsValid())
-		{
-			KnetikCloudJson::AddObjectToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", {{paramName}});
-		}
-
-		{{/isPrimitiveType}}
-		{{/isString}}
 		{{/isListContainer}}
 		KnetikCloudJson::ToContentString(JsonObject, JsonBody);
 

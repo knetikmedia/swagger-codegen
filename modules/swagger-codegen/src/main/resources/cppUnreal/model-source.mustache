@@ -74,20 +74,8 @@ namespace KnetikCloud
 		JsonObject->SetObjectField("{{baseName}}", {{name}}JsonMap);
 		{{/isMapContainer}}
 		{{^isMapContainer}}
-		{{#isPrimitiveType}}
-
+	
 		KnetikCloudJson::AddToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", m{{name}});
-		{{/isPrimitiveType}}
-		{{^isPrimitiveType}}
-		{{#isString}}
-
-		KnetikCloudJson::AddToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", m{{name}});
-		{{/isString}}
-		{{^isString}}
-		
-		KnetikCloudJson::AddObjectToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", m{{name}});
-		{{/isString}}
-		{{/isPrimitiveType}}
 		{{/isMapContainer}}
 		{{/isListContainer}}
 		{{/isInherited}}
@@ -130,21 +118,10 @@ namespace KnetikCloud
 		}
 		{{/isMapContainer}}
 		{{^isMapContainer}}
-		{{#isPrimitiveType}}
 
-		{{{datatype}}} {{name}}Item = KnetikCloudJson::GetFromJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}");
+		{{{datatype}}} {{name}}Item;
+		KnetikCloudJson::GetFromJsonObject<>(JsonObject, "{{baseName}}", {{name}}Item);
 		Set{{name}}({{name}}Item);
-		{{/isPrimitiveType}}
-		{{^isPrimitiveType}}
-		{{#isString}}
-
-		{{{datatype}}} {{name}}Item = KnetikCloudJson::GetFromJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}");
-		{{/isString}}
-		{{^isString}}
-		{{{datatype}}} {{name}}Item = KnetikCloudJson::GetObjectFromJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}");
-		Set{{name}}({{name}}Item);
-		{{/isString}}
-		{{/isPrimitiveType}}
 		{{/isMapContainer}}
 		{{/isListContainer}}
 		{{/isInherited}}
@@ -171,7 +148,7 @@ namespace KnetikCloud
 		return m{{name}};
 	}
 
-	void {{classname}}::Set{{name}}({{{datatype}}} Value)
+	void {{classname}}::Set{{name}}(const {{{datatype}}}& Value)
 	{
 		m{{name}} = Value;
 		{{^required}}b{{name}}IsSet = true;{{/required}}
@@ -184,20 +161,11 @@ namespace KnetikCloud
 		return m{{name}};
 	}
 
-	{{#isString}}
-	void {{classname}}::Set{{name}}(const FString& Value)
+	void {{classname}}::Set{{name}}(const {{{datatype}}}& Value)
 	{
 		m{{name}} = Value;
 		{{^required}}b{{name}}IsSet = true;{{/required}}
 	}
-	{{/isString}}
-	{{^isString}}
-	void {{classname}}::Set{{name}}({{{datatype}}} Value)
-	{
-		m{{name}} = Value;
-		{{^required}}b{{name}}IsSet = true;{{/required}}
-	}
-	{{/isString}}
 
 	{{/isNotContainer}}
 	{{^required}}
