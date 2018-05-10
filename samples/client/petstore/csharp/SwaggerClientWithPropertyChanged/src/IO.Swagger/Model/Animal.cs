@@ -19,6 +19,7 @@ using System.Collections.ObjectModel;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using JsonSubTypes;
 using PropertyChanged;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -30,6 +31,9 @@ namespace IO.Swagger.Model
     /// Animal
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonSubtypes), "className")]
+    [JsonSubtypes.KnownSubType(typeof(Dog), "Dog")]
+    [JsonSubtypes.KnownSubType(typeof(Cat), "Cat")]
     [ImplementPropertyChanged]
     public partial class Animal :  IEquatable<Animal>, IValidatableObject
     {
@@ -41,27 +45,27 @@ namespace IO.Swagger.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="Animal" /> class.
         /// </summary>
-        /// <param name="ClassName">ClassName (required).</param>
-        /// <param name="Color">Color (default to &quot;red&quot;).</param>
-        public Animal(string ClassName = default(string), string Color = "red")
+        /// <param name="className">className (required).</param>
+        /// <param name="color">color (default to &quot;red&quot;).</param>
+        public Animal(string className = default(string), string color = "red")
         {
-            // to ensure "ClassName" is required (not null)
-            if (ClassName == null)
+            // to ensure "className" is required (not null)
+            if (className == null)
             {
-                throw new InvalidDataException("ClassName is a required property for Animal and cannot be null");
+                throw new InvalidDataException("className is a required property for Animal and cannot be null");
             }
             else
             {
-                this.ClassName = ClassName;
+                this.ClassName = className;
             }
-            // use default value if no "Color" provided
-            if (Color == null)
+            // use default value if no "color" provided
+            if (color == null)
             {
                 this.Color = "red";
             }
             else
             {
-                this.Color = Color;
+                this.Color = color;
             }
         }
         
@@ -95,7 +99,7 @@ namespace IO.Swagger.Model
         /// Returns the JSON string presentation of the object
         /// </summary>
         /// <returns>JSON string presentation of the object</returns>
-        public string ToJson()
+        public virtual string ToJson()
         {
             return JsonConvert.SerializeObject(this, Formatting.Indented);
         }
@@ -176,6 +180,16 @@ namespace IO.Swagger.Model
         /// <param name="validationContext">Validation context</param>
         /// <returns>Validation Result</returns>
         IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
+        {
+            return this.BaseValidate(validationContext);
+        }
+
+        /// <summary>
+        /// To validate all properties of the instance
+        /// </summary>
+        /// <param name="validationContext">Validation context</param>
+        /// <returns>Validation Result</returns>
+        protected IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> BaseValidate(ValidationContext validationContext)
         {
             yield break;
         }

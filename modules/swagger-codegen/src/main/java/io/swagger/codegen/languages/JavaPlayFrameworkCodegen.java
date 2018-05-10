@@ -51,7 +51,7 @@ public class JavaPlayFrameworkCodegen extends AbstractJavaCodegen implements Bea
 
         additionalProperties.put(CONFIG_PACKAGE, configPackage);
         additionalProperties.put(BASE_PACKAGE, basePackage);
-
+        additionalProperties.put("java8", true);
         additionalProperties.put("jackson", "true");
 
         cliOptions.add(new CliOption(TITLE, "server title name or client service name"));
@@ -153,6 +153,9 @@ public class JavaPlayFrameworkCodegen extends AbstractJavaCodegen implements Bea
         supportingFiles.add(new SupportingFile("routes.mustache", "conf", "routes"));
 
         //App/Utils folder
+        if (!this.controllerOnly && this.useInterfaces) {
+            supportingFiles.add(new SupportingFile("module.mustache", "app", "Module.java"));
+        }
         supportingFiles.add(new SupportingFile("swaggerUtils.mustache", "app/swagger", "SwaggerUtils.java"));
         if (this.handleExceptions) {
             supportingFiles.add(new SupportingFile("errorHandler.mustache", "app/swagger", "ErrorHandler.java"));
@@ -165,7 +168,7 @@ public class JavaPlayFrameworkCodegen extends AbstractJavaCodegen implements Bea
         if(this.useSwaggerUI) {
             //App/Controllers
             supportingFiles.add(new SupportingFile("swagger.mustache", "public", "swagger.json"));
-            supportingFiles.add(new SupportingFile("apiDocController.mustache", "app/controllers", "ApiDocController.java"));
+            supportingFiles.add(new SupportingFile("apiDocController.mustache", String.format("app/%s", apiPackage.replace(".", File.separator)), "ApiDocController.java"));
         }
 
         //We remove the default api.mustache that is used
@@ -260,7 +263,7 @@ public class JavaPlayFrameworkCodegen extends AbstractJavaCodegen implements Bea
                     }
                 }
 
-                Pattern pathVariableMatcher = Pattern.compile("\\{(.+)}");
+                Pattern pathVariableMatcher = Pattern.compile("\\{([^}]+)}");
                 Matcher match = pathVariableMatcher.matcher(operation.path);
                 while (match.find()) {
                     String completeMatch = match.group();
@@ -269,6 +272,12 @@ public class JavaPlayFrameworkCodegen extends AbstractJavaCodegen implements Bea
                 }
 
                 if (operation.returnType != null) {
+                    if (operation.returnType.equals("Boolean")) {
+                        operation.vendorExtensions.put("missingReturnInfoIfNeeded", "true");
+                    }
+                    if (operation.returnType.equals("BigDecimal")) {
+                        operation.vendorExtensions.put("missingReturnInfoIfNeeded", "1.0");
+                    }
                     if (operation.returnType.startsWith("List")) {
                         String rt = operation.returnType;
                         int end = rt.lastIndexOf(">");

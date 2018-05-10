@@ -9,19 +9,19 @@ import Foundation
 
 
 /** Response object containing AllPrimitives object */
-open class GetAllModelsResult: Codable {
+
+public struct GetAllModelsResult: Codable {
 
     public var myPrimitiveArray: [AllPrimitives]?
     public var myPrimitive: AllPrimitives?
     public var myVariableNameTest: VariableNameTest?
 
-    public init() {}
-
-
-    private enum CodingKeys: String, CodingKey { 
-        case myPrimitiveArray = "myPrimitiveArray"
-        case myPrimitive = "myPrimitive"
-        case myVariableNameTest = "myVariableNameTest"
+    public init(myPrimitiveArray: [AllPrimitives]?, myPrimitive: AllPrimitives?, myVariableNameTest: VariableNameTest?) {
+        self.myPrimitiveArray = myPrimitiveArray
+        self.myPrimitive = myPrimitive
+        self.myVariableNameTest = myVariableNameTest
     }
 
+
 }
+

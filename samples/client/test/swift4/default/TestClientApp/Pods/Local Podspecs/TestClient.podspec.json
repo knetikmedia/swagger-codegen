@@ -2,7 +2,8 @@
   "name": "TestClient",
   "platforms": {
     "ios": "9.0",
-    "osx": "10.11"
+    "osx": "10.11",
+    "tvos": "9.0"
   },
   "version": "0.0.1",
   "source": {
@@ -13,10 +14,10 @@
   "license": "Proprietary",
   "homepage": "https://github.com/swagger-api/swagger-codegen",
   "summary": "TestClient",
-  "source_files": "TestClient/Classes/Swaggers/**/*.swift",
+  "source_files": "TestClient/Classes/**/*.swift",
   "dependencies": {
     "Alamofire": [
-      "~> 4.5"
+      "~> 4.5.0"
     ]
   }
 }

@@ -13,6 +13,9 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Strings;
 
 import io.swagger.codegen.CliOption;
@@ -27,6 +30,7 @@ import io.swagger.models.Model;
 import io.swagger.models.Operation;
 import io.swagger.models.Path;
 import io.swagger.models.Swagger;
+import io.swagger.models.parameters.BodyParameter;
 import io.swagger.models.parameters.FormParameter;
 import io.swagger.models.parameters.Parameter;
 import io.swagger.models.properties.ArrayProperty;
@@ -42,14 +46,17 @@ import io.swagger.models.properties.StringProperty;
 
 public abstract class AbstractJavaCodegen extends DefaultCodegen implements CodegenConfig {
 
+    static Logger LOGGER = LoggerFactory.getLogger(AbstractJavaCodegen.class);
     public static final String FULL_JAVA_UTIL = "fullJavaUtil";
     public static final String DEFAULT_LIBRARY = "<default>";
     public static final String DATE_LIBRARY = "dateLibrary";
     public static final String JAVA8_MODE = "java8";
+    public static final String SUPPORT_ASYNC = "supportAsync";
     public static final String WITH_XML = "withXml";
     public static final String SUPPORT_JAVA6 = "supportJava6";
 
     protected String dateLibrary = "threetenbp";
+    protected boolean supportAsync = false;
     protected boolean java8Mode = false;
     protected boolean withXml = false;
     protected String invokerPackage = "io.swagger";
@@ -76,7 +83,6 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
     protected String javaUtilPrefix = "";
     protected Boolean serializableModel = false;
     protected boolean serializeBigDecimalAsString = false;
-    protected boolean hideGenerationTimestamp = false;
     protected String apiDocPath = "docs/";
     protected String modelDocPath = "docs/";
     protected boolean supportJava6= false;
@@ -90,6 +96,8 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
         modelDocTemplateFiles.put("model_doc.mustache", ".md");
         apiDocTemplateFiles.put("api_doc.mustache", ".md");
 
+        hideGenerationTimestamp = false; 
+        
         setReservedWordsLowerCase(
             Arrays.asList(
                 // used as internal variables, can collide with parameter names
@@ -168,7 +176,6 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
         java8ModeOptions.put("false", "Various third party libraries as needed");
         java8Mode.setEnum(java8ModeOptions);
         cliOptions.add(java8Mode);
-
     }
 
     @Override
@@ -198,6 +205,14 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
         } else {
             //not set, use default to be passed to template
             additionalProperties.put(CodegenConstants.INVOKER_PACKAGE, invokerPackage);
+        }
+
+        if (!additionalProperties.containsKey(CodegenConstants.MODEL_PACKAGE)) {
+            additionalProperties.put(CodegenConstants.MODEL_PACKAGE, modelPackage);
+        }
+
+        if (!additionalProperties.containsKey(CodegenConstants.API_PACKAGE)) {
+            additionalProperties.put(CodegenConstants.API_PACKAGE, apiPackage);
         }
 
         if (additionalProperties.containsKey(CodegenConstants.GROUP_ID)) {
@@ -376,14 +391,21 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
         // used later in recursive import in postProcessingModels
         importMapping.put("com.fasterxml.jackson.annotation.JsonProperty", "com.fasterxml.jackson.annotation.JsonCreator");
 
-        if(additionalProperties.containsKey(JAVA8_MODE)) {
+        if (additionalProperties.containsKey(JAVA8_MODE)) {
             setJava8Mode(Boolean.parseBoolean(additionalProperties.get(JAVA8_MODE).toString()));
             if ( java8Mode ) {
                 additionalProperties.put("java8", "true");
             }
         }
 
-        if(additionalProperties.containsKey(WITH_XML)) {
+        if (additionalProperties.containsKey(SUPPORT_ASYNC)) {
+            setSupportAsync(Boolean.parseBoolean(additionalProperties.get(SUPPORT_ASYNC).toString()));
+            if (supportAsync) {
+                additionalProperties.put(SUPPORT_ASYNC, "true");
+            }
+        }
+
+        if (additionalProperties.containsKey(WITH_XML)) {
             setWithXml(Boolean.parseBoolean(additionalProperties.get(WITH_XML).toString()));
             if ( withXml ) {
                 additionalProperties.put(WITH_XML, "true");
@@ -490,6 +512,19 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
     @Override
     public String toApiTestFilename(String name) {
         return toApiName(name) + "Test";
+    }
+
+    @Override
+    public String toApiName(String name) {
+        if (name.length() == 0) {
+            return "DefaultApi";
+        }
+        return camelize(name) + "Api";
+    }
+
+    @Override
+    public String toApiFilename(String name) {
+        return toApiName(name);
     }
 
     @Override
@@ -619,7 +654,7 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
 
     @Override
     public String getAlias(String name) {
-        if (typeAliases.containsKey(name)) {
+        if (typeAliases != null && typeAliases.containsKey(name)) {
             return typeAliases.get(name);
         }
         return name;
@@ -638,19 +673,39 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
             if (ap.getItems() == null) {
                 return null;
             }
-            return String.format(pattern, getTypeDeclaration(ap.getItems()));
+
+            String typeDeclaration = getTypeDeclaration(ap.getItems());
+            Object java8obj = additionalProperties.get("java8");
+            if (java8obj != null) {
+                Boolean java8 = Boolean.valueOf(java8obj.toString());
+                if (java8 != null && java8) {
+                    typeDeclaration = "";
+                }
+            }
+
+            return String.format(pattern, typeDeclaration);
         } else if (p instanceof MapProperty) {
             final MapProperty ap = (MapProperty) p;
             final String pattern;
             if (fullJavaUtil) {
-                pattern = "new java.util.HashMap<String, %s>()";
+                pattern = "new java.util.HashMap<%s>()";
             } else {
-                pattern = "new HashMap<String, %s>()";
+                pattern = "new HashMap<%s>()";
             }
             if (ap.getAdditionalProperties() == null) {
                 return null;
             }
-            return String.format(pattern, getTypeDeclaration(ap.getAdditionalProperties()));
+
+            String typeDeclaration = String.format("String, %s", getTypeDeclaration(ap.getAdditionalProperties()));
+            Object java8obj = additionalProperties.get("java8");
+            if (java8obj != null) {
+                Boolean java8 = Boolean.valueOf(java8obj.toString());
+                if (java8 != null && java8) {
+                    typeDeclaration = "";
+                }
+            }
+
+            return String.format(pattern, typeDeclaration);
         } else if (p instanceof IntegerProperty) {
             IntegerProperty dp = (IntegerProperty) p;
             if (dp.getDefault() != null) {
@@ -837,10 +892,12 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
             }
         }
 
-        if ("array".equals(property.containerType)) {
-          model.imports.add("ArrayList");
-        } else if ("map".equals(property.containerType)) {
-          model.imports.add("HashMap");
+        if (!fullJavaUtil) {
+            if ("array".equals(property.containerType)) {
+                model.imports.add("ArrayList");
+            } else if ("map".equals(property.containerType)) {
+                model.imports.add("HashMap");
+            }
         }
 
         if(!BooleanUtils.toBoolean(model.isEnum)) {
@@ -902,13 +959,16 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
             }
             for (Operation operation : path.getOperations()) {
                 boolean hasFormParameters = false;
+                boolean hasBodyParameters = false;
                 for (Parameter parameter : operation.getParameters()) {
                     if (parameter instanceof FormParameter) {
                         hasFormParameters = true;
                     }
+                    if (parameter instanceof BodyParameter) {
+                        hasBodyParameters = true;
+                    }
                 }
-              //only add content-Type if its no a GET-Method
-                if(path.getGet() != null || ! operation.equals(path.getGet())){
+                if (hasBodyParameters || hasFormParameters){
                     String defaultContentType = hasFormParameters ? "application/x-www-form-urlencoded" : "application/json";
                     String contentType =  operation.getConsumes() == null || operation.getConsumes().isEmpty() ? defaultContentType : operation.getConsumes().get(0);
                     operation.setVendorExtension("x-contentType", contentType);
@@ -996,9 +1056,11 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
 
     @Override
     public String toEnumValue(String value, String datatype) {
-        if ("Integer".equals(datatype) || "Long".equals(datatype) ||
-            "Double".equals(datatype)) {
+        if ("Integer".equals(datatype) || "Double".equals(datatype)) {
             return value;
+        } else if ("Long".equals(datatype)) {
+            // add l to number, e.g. 2048 => 2048l
+            return value + "l";
         } else if ("Float".equals(datatype)) {
             // add f to number, e.g. 3.14 => 3.14f
             return value + "f";
@@ -1069,6 +1131,10 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
             return "invalidPackageName";
         }
         return packageName;
+    }
+
+    public String getInvokerPackage() {
+        return invokerPackage;
     }
 
     public void setInvokerPackage(String invokerPackage) {
@@ -1172,6 +1238,10 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
         this.java8Mode = enabled;
     }
 
+    public void setSupportAsync(boolean enabled) {
+        this.supportAsync = enabled;
+    }
+
     @Override
     public String escapeQuotationMark(String input) {
         // remove " to avoid code injection
@@ -1223,19 +1293,25 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
         additionalProperties.put(propertyKey, value);
     }
 
-    @Override
-    public String sanitizeTag(String tag) {
-        return camelize(sanitizeName(tag));
-    }
-
     /**
-     * Output the Getter name for boolean property, e.g. isActive
+     * Output the partial Getter name for boolean property, e.g. Active
      *
      * @param name the name of the property
-     * @return getter name based on naming convention
+     * @return partial getter name based on naming convention
      */
     public String toBooleanGetter(String name) {
-        return "is" + getterAndSetterCapitalize(name);
+        return getterAndSetterCapitalize(name);
+    }
+
+    @Override
+    public String sanitizeTag(String tag) {
+        tag = camelize(underscore(sanitizeName(tag)));
+
+        // tag starts with numbers
+        if (tag.matches("^\\d.*")) {
+            tag = "Class" + tag;
+        }
+        return tag;
     }
 
 }

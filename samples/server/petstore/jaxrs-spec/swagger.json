@@ -9,7 +9,7 @@
       "email" : "apiteam@swagger.io"
     },
     "license" : {
-      "name" : "Apache 2.0",
+      "name" : "Apache-2.0",
       "url" : "http://www.apache.org/licenses/LICENSE-2.0.html"
     }
   },
@@ -166,7 +166,8 @@
         },
         "security" : [ {
           "petstore_auth" : [ "write:pets", "read:pets" ]
-        } ]
+        } ],
+        "deprecated" : true
       }
     },
     "/pet/{petId}" : {
@@ -657,7 +658,10 @@
               "$ref" : "#/definitions/Client"
             }
           }
-        }
+        },
+        "security" : [ {
+          "api_key_query" : [ ]
+        } ]
       }
     },
     "/fake" : {
@@ -1025,6 +1029,59 @@
           }
         }
       }
+    },
+    "/fake/inline-additionalProperties" : {
+      "post" : {
+        "tags" : [ "fake" ],
+        "summary" : "test inline additionalProperties",
+        "description" : "",
+        "operationId" : "testInlineAdditionalProperties",
+        "consumes" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "param",
+          "description" : "request body",
+          "required" : true,
+          "schema" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation"
+          }
+        }
+      }
+    },
+    "/another-fake/dummy" : {
+      "patch" : {
+        "tags" : [ "$another-fake?" ],
+        "summary" : "To test special tags",
+        "description" : "To test special tags",
+        "operationId" : "test_special_tags",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "description" : "client model",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/Client"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/Client"
+            }
+          }
+        }
+      }
     }
   },
   "securityDefinitions" : {
@@ -1041,6 +1098,11 @@
       "type" : "apiKey",
       "name" : "api_key",
       "in" : "header"
+    },
+    "api_key_query" : {
+      "type" : "apiKey",
+      "name" : "api_key_query",
+      "in" : "query"
     },
     "http_basic_test" : {
       "type" : "basic"
@@ -1626,15 +1688,6 @@
       "type" : "string",
       "enum" : [ "placed", "approved", "delivered" ]
     },
-    "OuterNumber" : {
-      "type" : "number"
-    },
-    "OuterString" : {
-      "type" : "string"
-    },
-    "OuterBoolean" : {
-      "type" : "boolean"
-    },
     "OuterComposite" : {
       "type" : "object",
       "properties" : {
@@ -1648,6 +1701,15 @@
           "$ref" : "#/definitions/OuterBoolean"
         }
       }
+    },
+    "OuterNumber" : {
+      "type" : "number"
+    },
+    "OuterString" : {
+      "type" : "string"
+    },
+    "OuterBoolean" : {
+      "type" : "boolean"
     }
   },
   "externalDocs" : {

@@ -13,24 +13,25 @@ import java.util.ArrayList;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Inject;
-import java.io.IOException;
+import java.io.File;
 import swagger.SwaggerUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import javax.validation.constraints.*;
+import play.Configuration;
 
 import swagger.SwaggerUtils.ApiAction;
 
 
 public class PetApiController extends Controller {
 
-    
     private final ObjectMapper mapper;
+    private final Configuration configuration;
 
     @Inject
-    private PetApiController() {
-        
+    private PetApiController(Configuration configuration) {
         mapper = new ObjectMapper();
+        this.configuration = configuration;
     }
 
 
@@ -38,11 +39,14 @@ public class PetApiController extends Controller {
     public Result addPet() throws Exception {
         JsonNode nodebody = request().body().asJson();
         Pet body;
-
-        body = mapper.readValue(nodebody.toString(), Pet.class);
-        body.validate();
-
-
+        if (nodebody != null) {
+            body = mapper.readValue(nodebody.toString(), Pet.class);
+            if (configuration.getBoolean("useInputBeanValidation")) {
+                SwaggerUtils.validate(body);
+            }
+        } else {
+            throw new IllegalArgumentException("'body' parameter is required");
+        }
         return ok();
     }
 
@@ -51,42 +55,49 @@ public class PetApiController extends Controller {
         String valueapiKey = request().getHeader("api_key");
         String apiKey;
         if (valueapiKey != null) {
-            apiKey = (String)valueapiKey;
-        
+            apiKey = valueapiKey;
         } else {
             apiKey = null;
         }
-
         return ok();
     }
 
     @ApiAction
     public Result findPetsByStatus() throws Exception {
-        List<String> statusList = SwaggerUtils.parametersToList("csv", request().queryString().get("status"));
+        String[] statusArray = request().queryString().get("status");
+        if (statusArray == null) {
+            throw new IllegalArgumentException("'status' parameter is required");
+        }
+        List<String> statusList = SwaggerUtils.parametersToList("csv", statusArray);
         List<String> status = new ArrayList<String>();
         for (String curParam : statusList) {
-            //noinspection UseBulkOperation
-            status.add(curParam);
+            if (!curParam.isEmpty()) {
+                //noinspection UseBulkOperation
+                status.add(curParam);
+            }
         }
-
         return ok();
     }
 
     @ApiAction
     public Result findPetsByTags() throws Exception {
-        List<String> tagsList = SwaggerUtils.parametersToList("csv", request().queryString().get("tags"));
+        String[] tagsArray = request().queryString().get("tags");
+        if (tagsArray == null) {
+            throw new IllegalArgumentException("'tags' parameter is required");
+        }
+        List<String> tagsList = SwaggerUtils.parametersToList("csv", tagsArray);
         List<String> tags = new ArrayList<String>();
         for (String curParam : tagsList) {
-            //noinspection UseBulkOperation
-            tags.add(curParam);
+            if (!curParam.isEmpty()) {
+                //noinspection UseBulkOperation
+                tags.add(curParam);
+            }
         }
-
         return ok();
     }
 
     @ApiAction
     public Result getPetById(Long petId) throws Exception {
-
         return ok();
     }
 
@@ -94,11 +105,14 @@ public class PetApiController extends Controller {
     public Result updatePet() throws Exception {
         JsonNode nodebody = request().body().asJson();
         Pet body;
-
-        body = mapper.readValue(nodebody.toString(), Pet.class);
-        body.validate();
-
-
+        if (nodebody != null) {
+            body = mapper.readValue(nodebody.toString(), Pet.class);
+            if (configuration.getBoolean("useInputBeanValidation")) {
+                SwaggerUtils.validate(body);
+            }
+        } else {
+            throw new IllegalArgumentException("'body' parameter is required");
+        }
         return ok();
     }
 
@@ -107,20 +121,17 @@ public class PetApiController extends Controller {
         String valuename = (request().body().asMultipartFormData().asFormUrlEncoded().get("name"))[0];
         String name;
         if (valuename != null) {
-            name = (String)valuename;
-        
+            name = valuename;
         } else {
             name = null;
         }
         String valuestatus = (request().body().asMultipartFormData().asFormUrlEncoded().get("status"))[0];
         String status;
         if (valuestatus != null) {
-            status = (String)valuestatus;
-        
+            status = valuestatus;
         } else {
             status = null;
         }
-
         return ok();
     }
 
@@ -129,13 +140,11 @@ public class PetApiController extends Controller {
         String valueadditionalMetadata = (request().body().asMultipartFormData().asFormUrlEncoded().get("additionalMetadata"))[0];
         String additionalMetadata;
         if (valueadditionalMetadata != null) {
-            additionalMetadata = (String)valueadditionalMetadata;
-        
+            additionalMetadata = valueadditionalMetadata;
         } else {
             additionalMetadata = null;
         }
         Http.MultipartFormData.FilePart file = request().body().asMultipartFormData().getFile("file");
-        
         return ok();
     }
 }

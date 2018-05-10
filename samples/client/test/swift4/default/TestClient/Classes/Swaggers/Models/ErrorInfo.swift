@@ -9,19 +9,19 @@ import Foundation
 
 
 /** Example Error object */
-open class ErrorInfo: Codable {
+
+public struct ErrorInfo: Codable {
 
     public var code: Int?
     public var message: String?
     public var details: [String]?
 
-    public init() {}
-
-
-    private enum CodingKeys: String, CodingKey { 
-        case code = "code"
-        case message = "message"
-        case details = "details"
+    public init(code: Int?, message: String?, details: [String]?) {
+        self.code = code
+        self.message = message
+        self.details = details
     }
 
+
 }
+

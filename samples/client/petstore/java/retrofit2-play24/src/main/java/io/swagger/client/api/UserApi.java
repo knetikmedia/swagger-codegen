@@ -2,6 +2,8 @@ package io.swagger.client.api;
 
 import io.swagger.client.CollectionFormats.*;
 
+
+
 import retrofit2.Call;
 import retrofit2.http.*;
 
@@ -65,7 +67,7 @@ public interface UserApi {
   /**
    * Get user by user name
    * 
-   * @param username The name that needs to be fetched. Use user1 for testing.  (required)
+   * @param username The name that needs to be fetched. Use user1 for testing. (required)
    * @return Call&lt;User&gt;
    */
   @GET("user/{username}")

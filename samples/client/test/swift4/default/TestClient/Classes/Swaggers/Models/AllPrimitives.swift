@@ -9,8 +9,14 @@ import Foundation
 
 
 /** Object which contains lots of different primitive Swagger types */
-open class AllPrimitives: Codable {
 
+public struct AllPrimitives: Codable {
+
+    public enum MyInlineStringEnum: String, Codable { 
+        case inlinestringenumvalue1 = "inlineStringEnumValue1"
+        case inlinestringenumvalue2 = "inlineStringEnumValue2"
+        case inlinestringenumvalue3 = "inlineStringEnumValue3"
+    }
     public var myInteger: Int?
     public var myIntegerArray: [Int]?
     public var myLong: Int64?
@@ -35,35 +41,36 @@ open class AllPrimitives: Codable {
     public var myUUIDArray: [UUID]?
     public var myStringEnum: StringEnum?
     public var myStringEnumArray: [StringEnum]?
+    public var myInlineStringEnum: MyInlineStringEnum?
 
-    public init() {}
-
-
-    private enum CodingKeys: String, CodingKey { 
-        case myInteger = "myInteger"
-        case myIntegerArray = "myIntegerArray"
-        case myLong = "myLong"
-        case myLongArray = "myLongArray"
-        case myFloat = "myFloat"
-        case myFloatArray = "myFloatArray"
-        case myDouble = "myDouble"
-        case myDoubleArray = "myDoubleArray"
-        case myString = "myString"
-        case myStringArray = "myStringArray"
-        case myBytes = "myBytes"
-        case myBytesArray = "myBytesArray"
-        case myBoolean = "myBoolean"
-        case myBooleanArray = "myBooleanArray"
-        case myDate = "myDate"
-        case myDateArray = "myDateArray"
-        case myDateTime = "myDateTime"
-        case myDateTimeArray = "myDateTimeArray"
-        case myFile = "myFile"
-        case myFileArray = "myFileArray"
-        case myUUID = "myUUID"
-        case myUUIDArray = "myUUIDArray"
-        case myStringEnum = "myStringEnum"
-        case myStringEnumArray = "myStringEnumArray"
+    public init(myInteger: Int?, myIntegerArray: [Int]?, myLong: Int64?, myLongArray: [Int64]?, myFloat: Float?, myFloatArray: [Float]?, myDouble: Double?, myDoubleArray: [Double]?, myString: String?, myStringArray: [String]?, myBytes: Data?, myBytesArray: [Data]?, myBoolean: Bool?, myBooleanArray: [Bool]?, myDate: Date?, myDateArray: [Date]?, myDateTime: Date?, myDateTimeArray: [Date]?, myFile: URL?, myFileArray: [URL]?, myUUID: UUID?, myUUIDArray: [UUID]?, myStringEnum: StringEnum?, myStringEnumArray: [StringEnum]?, myInlineStringEnum: MyInlineStringEnum?) {
+        self.myInteger = myInteger
+        self.myIntegerArray = myIntegerArray
+        self.myLong = myLong
+        self.myLongArray = myLongArray
+        self.myFloat = myFloat
+        self.myFloatArray = myFloatArray
+        self.myDouble = myDouble
+        self.myDoubleArray = myDoubleArray
+        self.myString = myString
+        self.myStringArray = myStringArray
+        self.myBytes = myBytes
+        self.myBytesArray = myBytesArray
+        self.myBoolean = myBoolean
+        self.myBooleanArray = myBooleanArray
+        self.myDate = myDate
+        self.myDateArray = myDateArray
+        self.myDateTime = myDateTime
+        self.myDateTimeArray = myDateTimeArray
+        self.myFile = myFile
+        self.myFileArray = myFileArray
+        self.myUUID = myUUID
+        self.myUUIDArray = myUUIDArray
+        self.myStringEnum = myStringEnum
+        self.myStringEnumArray = myStringEnumArray
+        self.myInlineStringEnum = myInlineStringEnum
     }
 
+
 }
+

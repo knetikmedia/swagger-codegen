@@ -2,6 +2,8 @@ package io.swagger.client.api;
 
 import io.swagger.client.CollectionFormats.*;
 
+
+
 import retrofit2.Call;
 import retrofit2.http.*;
 
@@ -20,7 +22,7 @@ import retrofit2.Response;
 public interface FakeClassnameTags123Api {
   /**
    * To test class name in snake case
-   * 
+   * To test class name in snake case
    * @param body client model (required)
    * @return Call&lt;Client&gt;
    */

@@ -14,12 +14,13 @@
 package io.swagger.client.model;
 
 import java.util.Objects;
+import java.util.Arrays;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import org.threeten.bp.OffsetDateTime;
+import java.time.OffsetDateTime;
 import javax.validation.constraints.*;
 import javax.validation.Valid;
 

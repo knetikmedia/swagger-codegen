@@ -1,14 +1,15 @@
 package apimodels;
 
-import java.util.Objects;
 import com.fasterxml.jackson.annotation.*;
 import java.util.Set;
 import javax.validation.*;
+import java.util.Objects;
 import javax.validation.constraints.*;
 /**
  * A tag for a pet
  */
 
+@SuppressWarnings({"UnusedReturnValue", "WeakerAccess"})
 public class Tag   {
   @JsonProperty("id")
   private Long id = null;
@@ -60,8 +61,8 @@ public class Tag   {
       return false;
     }
     Tag tag = (Tag) o;
-    return Objects.equals(this.id, tag.id) &&
-        Objects.equals(this.name, tag.name);
+    return Objects.equals(id, tag.id) &&
+        Objects.equals(name, tag.name);
   }
 
   @Override
@@ -69,6 +70,7 @@ public class Tag   {
     return Objects.hash(id, name);
   }
 
+  @SuppressWarnings("StringBufferReplaceableByString")
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
@@ -89,22 +91,6 @@ public class Tag   {
       return "null";
     }
     return o.toString().replace("\n", "\n    ");
-  }
-
-  public void validate() {
-    ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-    Validator validator = factory.getValidator();
-    Set<ConstraintViolation<Tag>> constraintViolations = validator.validate(this);
-    if (constraintViolations.size() > 0) {
-      StringBuilder errors = new StringBuilder();
-      for (ConstraintViolation<Tag> contraintes : constraintViolations) {
-        errors.append(String.format("%s.%s %s\n",
-            contraintes.getRootBeanClass().getSimpleName(),
-            contraintes.getPropertyPath(),
-            contraintes.getMessage()));
-      }
-      throw new RuntimeException("Bean validation : " + errors);
-    }
   }
 }
 
