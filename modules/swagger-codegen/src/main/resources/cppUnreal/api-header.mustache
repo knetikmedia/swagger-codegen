@@ -23,14 +23,15 @@ namespace KnetikCloud
 		{{#operation}}
 
 		{{#returnType}}
-		{{#returnContainer}}
-		typedef std::function<void(bool, {{{returnType}}})> {{operationId}}CallbackFunction;
-		{{/returnContainer}}
-		{{^returnContainer}}
-		typedef std::function<void(bool, {{{returnType}}})> {{operationId}}CallbackFunction;
-		{{/returnContainer}}
+		/// <summary>
+		/// {{operationId}} callback that will be invoked when the server response is received.
+		/// </summary>
+		typedef std::function<void(bool, const {{{returnType}}}&)> {{operationId}}CallbackFunction;
 		{{/returnType}}
 		{{^returnType}}
+		/// <summary>
+		/// {{operationId}} callback that will be invoked when the server response is received.
+		/// </summary>
 		typedef std::function<void(bool)> {{operationId}}CallbackFunction;
 		{{/returnType}}
 
@@ -44,16 +45,11 @@ namespace KnetikCloud
 		/// <param name="{{paramName}}">{{description}}{{^required}} (optional{{#defaultValue}}, default to {{.}}{{/defaultValue}}){{/required}}</param>
 		{{/allParams}}
 		void {{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}}, {{/allParams}}{{operationId}}CallbackFunction Callback);
+
 		bool {{operationId}}IsComplete() const;
 		bool {{operationId}}WasSuccessful() const;
-
 		{{#returnType}}
-		{{#returnContainer}}
-		{{{returnType}}} {{operationId}}ServerResult;
-		{{/returnContainer}}
-		{{^returnContainer}}
-		{{{returnType}}} {{operationId}}ServerResult;
-		{{/returnContainer}}
+		{{{returnType}}} {{operationId}}ServerResponse;
 		{{/returnType}}
 		{{/operation}}
 
@@ -61,15 +57,15 @@ namespace KnetikCloud
 	private:
 		{{#operation}}
 		void {{operationId}}OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
-		{{/operation}}		
+		{{/operation}}
 
 		// Data members
 	private:
 		{{#operation}}
-
 		bool b{{operationId}}IsComplete;
 		bool b{{operationId}}WasSuccessful;
 		{{operationId}}CallbackFunction {{operationId}}Callback;
+
 		{{/operation}}
 	};
 }

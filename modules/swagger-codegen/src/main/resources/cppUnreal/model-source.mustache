@@ -1,6 +1,11 @@
 {{>licenseInfo}}
+
 {{#models}}{{#model}}
 #include "{{classname}}.h"
+
+#if defined(KNETIK_CLOUD_DEBUG)
+#pragma optimize("", off)
+#endif // KNETIK_CLOUD_DEBUG
 
 #include "KnetikCloudConstants.h"
 #include "KnetikCloudJson.h"
@@ -30,8 +35,8 @@ namespace KnetikCloud
 		{{^required}}
 		b{{name}}IsSet = false;
 		{{/required}}
-		{{/isInherited}}
 
+		{{/isInherited}}
 		{{/vars}}
 	}
 
@@ -91,24 +96,26 @@ namespace KnetikCloud
 		{{#vars}}
 		{{^isInherited}}
 		{{#isListContainer}}
-		// LIST CONTAINER
 		m{{name}}.Empty();
-		TArray<TSharedPtr<FJsonValue>> {{name}}JsonValueArray = JsonObject->GetArrayField("{{baseName}}");
-		for (auto& ItemJsonValue : {{name}}JsonValueArray)
+		const TArray<TSharedPtr<FJsonValue>>* {{name}}JsonValueArray = nullptr;
+		if (JsonObject->TryGetArrayField("{{baseName}}", {{name}}JsonValueArray))
 		{
-			{{{items.datatype}}} CurrentItem;
-			KnetikCloudJson::FromJsonValue<>(ItemJsonValue, CurrentItem);
-			m{{name}}.Add(CurrentItem);
+			for (auto& ItemJsonValue : *{{name}}JsonValueArray)
+			{
+				{{{items.datatype}}} CurrentItem;
+				KnetikCloudJson::FromJsonValue<>(ItemJsonValue, CurrentItem);
+				m{{name}}.Add(CurrentItem);
+			}
 		}
+
 		{{/isListContainer}}
 		{{^isListContainer}}
 		{{#isMapContainer}}
-		// MAP CONTAINER
 		m{{name}}.Empty();
-		TSharedPtr<FJsonObject> {{name}}JsonObject = JsonObject->GetObjectField("{{baseName}}");
-		if ({{name}}JsonObject.IsValid())
+		const TSharedPtr<FJsonObject>* {{name}}JsonObject = nullptr;
+		if (JsonObject->TryGetObjectField("{{baseName}}", {{name}}JsonObject))
 		{
-			TMap<FString, TSharedPtr<FJsonValue>> {{name}}JsonValuesMap = {{name}}JsonObject->Values;
+			TMap<FString, TSharedPtr<FJsonValue>> {{name}}JsonValuesMap = (*{{name}}JsonObject)->Values;
 			for (auto& KeyValuePair : {{name}}JsonValuesMap)
 			{
 				{{{items.datatype}}} CurrentItem;
@@ -116,12 +123,13 @@ namespace KnetikCloud
 				m{{name}}.Add(KeyValuePair.Key, CurrentItem);
 			}
 		}
+
 		{{/isMapContainer}}
 		{{^isMapContainer}}
-
 		{{{datatype}}} {{name}}Item;
 		KnetikCloudJson::GetFromJsonObject<>(JsonObject, "{{baseName}}", {{name}}Item);
 		Set{{name}}({{name}}Item);
+
 		{{/isMapContainer}}
 		{{/isListContainer}}
 		{{/isInherited}}

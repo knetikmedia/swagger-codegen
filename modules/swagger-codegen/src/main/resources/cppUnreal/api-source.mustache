@@ -3,6 +3,10 @@
 
 #include "{{classname}}.h"
 
+#if defined(KNETIK_CLOUD_DEBUG)
+#pragma optimize("", off)
+#endif // KNETIK_CLOUD_DEBUG
+
 #include "KnetikCloudClient.h"
 #include "KnetikCloudJson.h"
 
@@ -20,14 +24,14 @@ namespace KnetikCloud
 		{{#returnType}}
 		{{^returnContainer}}
 		{{#vendorExtensions.x-codegen-response.isPrimitiveType}}
-		{{operationId}}ServerResult = {{vendorExtensions.x-codegen-response.defaultValue}};
+		{{operationId}}ServerResponse = {{vendorExtensions.x-codegen-response.defaultValue}};
 		{{/vendorExtensions.x-codegen-response.isPrimitiveType}}
 		{{^vendorExtensions.x-codegen-response.isPrimitiveType}}
 		{{#vendorExtensions.x-codegen-response.isString}}
-		{{operationId}}ServerResult = TEXT("");
+		{{operationId}}ServerResponse = TEXT("");
 		{{/vendorExtensions.x-codegen-response.isString}}
 		{{^vendorExtensions.x-codegen-response.isString}}
-		{{operationId}}ServerResult = MakeShareable(new {{{returnBaseType}}}());
+		{{operationId}}ServerResponse = MakeShareable(new {{{returnBaseType}}}());
 		{{/vendorExtensions.x-codegen-response.isString}}
 		{{/vendorExtensions.x-codegen-response.isPrimitiveType}}
 		{{/returnContainer}}
@@ -67,9 +71,9 @@ namespace KnetikCloud
 		FString {{{paramName}}}Replacement("{");
 		{{{paramName}}}Replacement.Append("{{baseName}}");
 		{{{paramName}}}Replacement.Append("}");
-		Path = Path.Replace(*{{{paramName}}}Replacement, *KnetikCloudClient::ConvertParameterToContentString({{{paramName}}}));
+		Path = Path.Replace(*{{{paramName}}}Replacement, *KnetikCloudJson::ToContentString({{{paramName}}}));
 		{{/pathParams}}
-		
+
 		b{{operationId}}IsComplete = false;
 		b{{operationId}}WasSuccessful = false;
 		{{operationId}}Callback = Callback;
@@ -81,17 +85,17 @@ namespace KnetikCloud
 		{{#isString}}
 		if ({{paramName}}.Len() > 0)
 		{
-			QueryParams.Add("{{baseName}}", KnetikCloudClient::ConvertParameterToContentString({{paramName}}));
+			QueryParams.Add("{{baseName}}", KnetikCloudJson::ToContentString({{paramName}}));
 		}
 		{{/isString}}
 		{{^isString}}
 		{{#isPrimitiveType}}
-		QueryParams.Add("{{baseName}}", KnetikCloudClient::ConvertParameterToContentString({{paramName}}));
+		QueryParams.Add("{{baseName}}", KnetikCloudJson::ToContentString({{paramName}}));
 		{{/isPrimitiveType}}
 		{{^isPrimitiveType}}
 		if ({{paramName}}.IsValid())
 		{
-			QueryParams.Add("{{baseName}}", KnetikCloudClient::ConvertParameterToContentString({{paramName}}));
+			QueryParams.Add("{{baseName}}", KnetikCloudJson::ToContentString({{paramName}}));
 		}
 		{{/isPrimitiveType}}
 		{{/isString}}
@@ -101,17 +105,17 @@ namespace KnetikCloud
 		{{#isString}}
 		if ({{paramName}}.Len() > 0)
 		{
-			FormParams.Add("{{baseName}}", KnetikCloudClient::ConvertParameterToContentString({{paramName}}));
+			FormParams.Add("{{baseName}}", KnetikCloudJson::ToContentString({{paramName}}));
 		}
 		{{/isString}}
 		{{^isString}}
 		{{#isPrimitiveType}}
-		FormParams.Add("{{baseName}}", KnetikCloudClient::ConvertParameterToContentString({{paramName}}));
+		FormParams.Add("{{baseName}}", KnetikCloudJson::ToContentString({{paramName}}));
 		{{/isPrimitiveType}}
 		{{^isPrimitiveType}}
 		if ({{paramName}}.IsValid())
 		{
-			FormParams.Add("{{baseName}}", KnetikCloudClient::ConvertParameterToContentString({{paramName}}));
+			FormParams.Add("{{baseName}}", KnetikCloudJson::ToContentString({{paramName}}));
 		}
 		{{/isPrimitiveType}}
 		{{/isString}}
@@ -135,7 +139,7 @@ namespace KnetikCloud
 		{{^isListContainer}}
 		KnetikCloudJson::AddToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", {{paramName}});
 		{{/isListContainer}}
-		KnetikCloudJson::ToContentString(JsonObject, JsonBody);
+		JsonBody = KnetikCloudJson::ToContentString(JsonObject);
 
 		{{/bodyParam}}
 		{{#authMethods}}
@@ -196,10 +200,11 @@ namespace KnetikCloud
 		if (Response.IsValid())
 		{
 			FString ContentString = Response->GetContentAsString();
+#if defined(KNETIK_CLOUD_DEBUG)
 			KnetikCloudLogger::LogInfo("{{operationId}} content string: " + ContentString);
+#endif // KNETIK_CLOUD_DEBUG
 
 			{{#isListContainer}}
-			// ghornmoen TODO: LIST CONTAINER - TEST THIS - is it an array, or is it contained by a parent object?
 			TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(ContentString);
 			TArray<TSharedPtr<FJsonValue>> JsonValueArray;
 			if (FJsonSerializer::Deserialize(JsonReader, JsonValueArray))
@@ -210,7 +215,7 @@ namespace KnetikCloud
 					{
 						{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem;
 						KnetikCloudJson::FromJsonValue<>(ItemJsonValue, CurrentItem);
-						{{operationId}}ServerResult.Add(CurrentItem);
+						{{operationId}}ServerResponse.Add(CurrentItem);
 					}
 					else
 					{
@@ -219,6 +224,11 @@ namespace KnetikCloud
 						break;
 					}
 				}
+			}
+			else
+			{
+				b{{operationId}}WasSuccessful = false;
+				KnetikCloudLogger::LogInfo("{{operationId}}: Unable to parse the content string: " + ContentString);
 			}
 			{{/isListContainer}}
 			{{^isListContainer}}
@@ -230,54 +240,32 @@ namespace KnetikCloud
 				{
 					{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem;
 					KnetikCloudJson::FromJsonValue<>(KeyValuePair.Value, CurrentItem);
-					{{operationId}}ServerResult.Add(KeyValuePair.Key, CurrentItem);
+					{{operationId}}ServerResponse.Add(KeyValuePair.Key, CurrentItem);
 				}
+			}
+			else
+			{
+				b{{operationId}}WasSuccessful = false;
+				KnetikCloudLogger::LogInfo("{{operationId}}: Unable to parse the content string: " + ContentString);
 			}
 			{{/isMapContainer}}
 			{{^isMapContainer}}
 			{{#returnTypeIsPrimitive}}
-			// ghornmoen TODO: PRIMITIVE TEST THIS - is it a primitive, or is it contained by a parent object?
-			TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(ContentString);
-			TSharedPtr<FJsonValue> JsonValue;
-			if (FJsonSerializer::Deserialize(JsonReader, JsonValue))
-			{
-				if (JsonValue.IsValid())
-				{
-					KnetikCloudJson::FromJsonValue<>(JsonValue, {{operationId}}ServerResult);
-				}
-				else
-				{
-					b{{operationId}}WasSuccessful = false;
-					KnetikCloudLogger::LogInfo("{{operationId}}: Unable to parse the content string: " + ContentString);
-				}
-			}
+			
+			KnetikCloudJson::FromContentString(ContentString, {{operationId}}ServerResponse);
 			{{/returnTypeIsPrimitive}}
 			{{^returnTypeIsPrimitive}}
 			{{#vendorExtensions.x-codegen-response.isString}}
-			TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(ContentString);
-			// ghornmoen TODO: STRING TEST THIS - is it a string, or is it contained by a parent object?
-			TSharedPtr<FJsonValue> JsonValue;
-			if (FJsonSerializer::Deserialize(JsonReader, JsonValue))
-			{
-				if (JsonValue.IsValid())
-				{
-					KnetikCloudJson::FromJsonValue<>(JsonValue, {{operationId}}ServerResult);
-				}
-				else
-				{
-					b{{operationId}}WasSuccessful = false;
-					KnetikCloudLogger::LogInfo("{{operationId}}: Unable to parse the content string: " + ContentString);
-				}
-			}
+			
+			KnetikCloudJson::FromContentString(ContentString, {{operationId}}ServerResponse);
 			{{/vendorExtensions.x-codegen-response.isString}}
 			{{^vendorExtensions.x-codegen-response.isString}}
-			// ghornmoen TODO: OBJECT FAIRLY CERTAIN THIS WAS TESTED BY AuthTypes
 			TSharedPtr<FJsonObject> JsonObject;
 			if (KnetikCloudJson::FromContentString(ContentString, JsonObject))
 			{
 				if (JsonObject.IsValid())
 				{
-					{{operationId}}ServerResult = KnetikCloudJson::ObjectFromJsonObject<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject);
+					{{operationId}}ServerResponse = KnetikCloudJson::ObjectFromJsonObject<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject);
 				}
 				else
 				{
@@ -298,15 +286,10 @@ namespace KnetikCloud
 		{{/returnType}}
 
 		{{#returnType}}
-		{{#returnContainer}}
-		{{operationId}}Callback(b{{operationId}}WasSuccessful, {{operationId}}ServerResult);
-		{{/returnContainer}}
-		{{^returnContainer}}
-		{{operationId}}Callback(b{{operationId}}WasSuccessful, {{operationId}}ServerResult);
-		{{/returnContainer}}
+		{{operationId}}Callback(bWasSuccessful, {{operationId}}ServerResponse);
 		{{/returnType}}
 		{{^returnType}}
-		{{operationId}}Callback(b{{operationId}}WasSuccessful);
+		{{operationId}}Callback(bWasSuccessful);
 		{{/returnType}}
 	}
 
