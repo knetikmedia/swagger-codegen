@@ -244,6 +244,9 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 		Set<String> oldImports = codegenModel.imports;
 		codegenModel.imports = new HashSet<String>();
 		for (String imp : oldImports) {
+			if (imp.equals("UKnetikCloud" + name)) {
+				continue;
+			}
 			String newImp = toModelImport(imp);
 			if (!newImp.isEmpty()) {
 				codegenModel.imports.add(newImp);
