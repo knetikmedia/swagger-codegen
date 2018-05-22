@@ -16,7 +16,6 @@ import io.swagger.codegen.CliOption;
 import io.swagger.codegen.CodegenConstants;
 import io.swagger.codegen.CodegenModel;
 import io.swagger.codegen.CodegenOperation;
-import io.swagger.codegen.CodegenParameter;
 import io.swagger.codegen.CodegenProperty;
 import io.swagger.codegen.CodegenType;
 import io.swagger.codegen.SupportingFile;
@@ -323,7 +322,7 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 				|| p instanceof FileProperty || languageSpecificPrimitives.contains(swaggerType))
 			return toModelName(swaggerType);
 
-		return "TSharedPtr<" + swaggerType + ">";
+		return swaggerType;
 	}
 
 	@Override
@@ -353,28 +352,12 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 		} else if (p instanceof ArrayProperty) {
 			ArrayProperty ap = (ArrayProperty) p;
 			String inner = getSwaggerType(ap.getItems());
-			if (!languageSpecificPrimitives.contains(inner)) {
-				inner = "TSharedPtr<" + inner + ">";
-			}
 			return "TArray<" + inner + ">()";
 		} else if (p instanceof RefProperty) {
 			RefProperty rp = (RefProperty) p;
 			return "new " + toModelName(rp.getSimpleRef()) + "()";
 		}
 		return "nullptr";
-	}
-
-	@Override
-	public void postProcessParameter(CodegenParameter parameter) {
-		super.postProcessParameter(parameter);
-
-		boolean isPrimitiveType = parameter.isPrimitiveType == Boolean.TRUE;
-		boolean isListContainer = parameter.isListContainer == Boolean.TRUE;
-		boolean isString = parameter.isString == Boolean.TRUE;
-
-		if (!isPrimitiveType && !isListContainer && !isString && !parameter.dataType.startsWith("TSharedPtr")) {
-			parameter.dataType = "TSharedPtr<" + parameter.dataType + ">";
-		}
 	}
 
 	/**
