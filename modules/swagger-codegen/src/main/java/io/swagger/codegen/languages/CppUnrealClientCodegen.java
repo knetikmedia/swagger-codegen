@@ -116,21 +116,23 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 		reservedWords = new HashSet<String>();
 		reservedWords.add("template");
 
-		supportingFiles.add(new SupportingFile("modelbase-header.mustache", "", "ModelBase.h"));
-		supportingFiles.add(new SupportingFile("modelbase-source.mustache", "", "ModelBase.cpp"));
-		supportingFiles.add(new SupportingFile("apiclient-header.mustache", "", "ApiClient.h"));
-		supportingFiles.add(new SupportingFile("apiclient-source.mustache", "", "ApiClient.cpp"));
-		supportingFiles.add(new SupportingFile("apiconfiguration-header.mustache", "", "ApiConfiguration.h"));
-		supportingFiles.add(new SupportingFile("apiconfiguration-source.mustache", "", "ApiConfiguration.cpp"));
-		supportingFiles.add(new SupportingFile("apiexception-header.mustache", "", "ApiException.h"));
-		supportingFiles.add(new SupportingFile("apiexception-source.mustache", "", "ApiException.cpp"));
-		supportingFiles.add(new SupportingFile("ihttpbody-header.mustache", "", "IHttpBody.h"));
-		supportingFiles.add(new SupportingFile("jsonbody-header.mustache", "", "JsonBody.h"));
-		supportingFiles.add(new SupportingFile("jsonbody-source.mustache", "", "JsonBody.cpp"));
-		supportingFiles.add(new SupportingFile("httpcontent-header.mustache", "", "HttpContent.h"));
-		supportingFiles.add(new SupportingFile("httpcontent-source.mustache", "", "HttpContent.cpp"));
-		supportingFiles.add(new SupportingFile("multipart-header.mustache", "", "MultipartFormData.h"));
-		supportingFiles.add(new SupportingFile("multipart-source.mustache", "", "MultipartFormData.cpp"));
+		supportingFiles.add(new SupportingFile("modelbase-header.mustache", "", "KnetikCloudModelBase.h"));
+		supportingFiles.add(new SupportingFile("modelbase-source.mustache", "", "KnetikCloudModelBase.cpp"));
+		supportingFiles.add(new SupportingFile("apiclient-header.mustache", "", "KnetikCloudApiClient.h"));
+		supportingFiles.add(new SupportingFile("apiclient-source.mustache", "", "KnetikCloudApiClient.cpp"));
+		supportingFiles
+				.add(new SupportingFile("apiconfiguration-header.mustache", "", "KnetikCloudApiConfiguration.h"));
+		supportingFiles
+				.add(new SupportingFile("apiconfiguration-source.mustache", "", "KnetikCloudApiConfiguration.cpp"));
+		supportingFiles.add(new SupportingFile("apiexception-header.mustache", "", "KnetikCloudApiException.h"));
+		supportingFiles.add(new SupportingFile("apiexception-source.mustache", "", "KnetikCloudApiException.cpp"));
+		supportingFiles.add(new SupportingFile("ihttpbody-header.mustache", "", "KnetikCloudIHttpBody.h"));
+		supportingFiles.add(new SupportingFile("jsonbody-header.mustache", "", "KnetikCloudJsonBody.h"));
+		supportingFiles.add(new SupportingFile("jsonbody-source.mustache", "", "KnetikCloudJsonBody.cpp"));
+		supportingFiles.add(new SupportingFile("httpcontent-header.mustache", "", "KnetikCloudHttpContent.h"));
+		supportingFiles.add(new SupportingFile("httpcontent-source.mustache", "", "KnetikCloudHttpContent.cpp"));
+		supportingFiles.add(new SupportingFile("multipart-header.mustache", "", "KnetikCloudMultipartFormData.h"));
+		supportingFiles.add(new SupportingFile("multipart-source.mustache", "", "KnetikCloudMultipartFormData.cpp"));
 		// supportingFiles.add(new SupportingFile("gitignore.mustache", "",
 		// ".gitignore"));
 		// supportingFiles.add(new SupportingFile("git_push.sh.mustache", "",
@@ -226,8 +228,12 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 	public String toModelImport(String name) {
 		if (importMapping.containsKey(name))
 			return importMapping.get(name);
-		else
+		else {
+			if (name.startsWith("UKnetikCloud")) {
+				name = name.substring(1);
+			}
 			return "#include \"model/" + name + ".h\"";
+		}
 	}
 
 	@Override
@@ -275,9 +281,13 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 		}
 
 		if (!isNullOrEmpty(model.parent)) {
-			parentModels.add(model.parent);
-			if (!childrenByParent.containsEntry(model.parent, model)) {
-				childrenByParent.put(model.parent, model);
+			String parent = model.parent;
+			if (parent.startsWith("UKnetikCloud")) {
+				parent = parent.substring(12);
+			}
+			parentModels.add(parent);
+			if (!childrenByParent.containsEntry(parent, model)) {
+				childrenByParent.put(parent, model);
 			}
 		}
 	}
@@ -288,12 +298,12 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 
 	@Override
 	public String toModelFilename(String name) {
-		return escapeGenerics(initialCaps(name));
+		return "KnetikCloud" + escapeGenerics(initialCaps(name));
 	}
 
 	@Override
 	public String toApiFilename(String name) {
-		return escapeGenerics(initialCaps(name) + "Api");
+		return "KnetikCloud" + escapeGenerics(initialCaps(name) + "Api");
 	}
 
 	/**
@@ -389,12 +399,12 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 				|| languageSpecificPrimitives.contains(type))
 			return type;
 		else
-			return escapeGenerics(Character.toUpperCase(type.charAt(0)) + type.substring(1));
+			return "UKnetikCloud" + escapeGenerics(Character.toUpperCase(type.charAt(0)) + type.substring(1));
 	}
 
 	@Override
 	public String toApiName(String type) {
-		return escapeGenerics(Character.toUpperCase(type.charAt(0)) + type.substring(1) + "Api");
+		return "UKnetikCloud" + escapeGenerics(Character.toUpperCase(type.charAt(0)) + type.substring(1) + "Api");
 	}
 
 	private String escapeGenerics(String string) {
@@ -434,7 +444,11 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 
 	private void postProcessParentModels(final Map<String, Object> models) {
 		for (final String parent : parentModels) {
-			final CodegenModel parentModel = ModelUtils.getModelByName(parent, models);
+			String parentSub = parent;
+			if (parentSub.startsWith("UKnetikCloud")) {
+				parentSub = parentSub.substring(12);
+			}
+			final CodegenModel parentModel = ModelUtils.getModelByName(parentSub, models);
 			final Collection<CodegenModel> childrenModels = childrenByParent.get(parent);
 			for (final CodegenModel child : childrenModels) {
 				processParentPropertiesInChildModel(parentModel, child);
