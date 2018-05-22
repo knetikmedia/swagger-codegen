@@ -141,21 +141,22 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 		// "CMakeLists.txt"));
 
 		languageSpecificPrimitives = new HashSet<String>(
-				Arrays.asList("int", "char", "bool", "long", "float", "double", "int32", "int64"));
+				Arrays.asList("int", "char", "bool", "long", "float", "int32"));
 
 		typeMapping = new HashMap<String, String>();
 		typeMapping.put("date", "utility::datetime");
 		typeMapping.put("DateTime", "utility::datetime");
 		typeMapping.put("string", "FString");
 		typeMapping.put("integer", "int32");
-		typeMapping.put("long", "int64");
+		typeMapping.put("long", "int32");
 		typeMapping.put("boolean", "bool");
 		typeMapping.put("array", "TArray");
 		typeMapping.put("map", "TMap");
 		typeMapping.put("file", "HttpContent");
 		typeMapping.put("object", "KnetikObject");
 		typeMapping.put("binary", "std::string");
-		typeMapping.put("number", "double");
+		typeMapping.put("number", "float");
+		typeMapping.put("double", "float");
 		typeMapping.put("UUID", "FString");
 
 		super.importMapping = new HashMap<String, String>();
