@@ -13,7 +13,7 @@
 #pragma optimize("", off)
 #endif // KNETIK_CLOUD_DEBUG
 
-U{{classname}}::U{{classname}}()
+{{classname}}::{{classname}}()
 {
 	{{#operation}}
 	b{{operationId}}IsComplete = false;
@@ -28,7 +28,7 @@ U{{classname}}::U{{classname}}()
 	{{operationId}}ServerResponse = TEXT("");
 	{{/vendorExtensions.x-codegen-response.isString}}
 	{{^vendorExtensions.x-codegen-response.isString}}
-	{{operationId}}ServerResponse = NewObject<U{{{returnBaseType}}}>();
+	{{operationId}}ServerResponse = NewObject<{{{returnBaseType}}}>();
 	{{/vendorExtensions.x-codegen-response.isString}}
 	{{/vendorExtensions.x-codegen-response.isPrimitiveType}}
 	{{/returnContainer}}
@@ -36,22 +36,22 @@ U{{classname}}::U{{classname}}()
 	{{/operation}}
 }
 
-U{{classname}}::~U{{classname}}()
+{{classname}}::~{{classname}}()
 {
 }
 {{#operation}}
 
-void U{{classname}}::Set{{operationId}}Callback({{operationId}}CallbackFunction Callback)
+void {{classname}}::Set{{operationId}}Callback({{operationId}}CallbackFunction Callback)
 {
 	{{operationId}}Callback = Callback;
 }
 
-void U{{classname}}::Remove{{operationId}}Callback()
+void {{classname}}::Remove{{operationId}}Callback()
 {
 	{{operationId}}Callback = nullptr;
 }
 
-void U{{classname}}::{{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
+void {{classname}}::{{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
 {
 	{{#allParams}}
 	{{#required}}
@@ -158,11 +158,11 @@ void U{{classname}}::{{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{
 		QueryParams,
 		FormParams,
 		JsonBody);
-	Request->OnProcessRequestComplete().BindUObject(this, &U{{classname}}::{{operationId}}OnResponseReceived);
+	Request->OnProcessRequestComplete().BindUObject(this, &{{classname}}::{{operationId}}OnResponseReceived);
 	Request->ProcessRequest();
 }
 
-void U{{classname}}::{{operationId}}OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+void {{classname}}::{{operationId}}OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 {
 	b{{operationId}}IsComplete = true;
 	b{{operationId}}WasSuccessful = bWasSuccessful;
@@ -196,7 +196,7 @@ void U{{classname}}::{{operationId}}OnResponseReceived(FHttpRequestPtr Request, 
 						{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem;
 						{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
 						{{^vendorExtensions.x-codegen-response.items.isPrimitiveType}}
-						U{{{vendorExtensions.x-codegen-response.items.baseType}}}* CurrentItem = nullptr;
+						{{{vendorExtensions.x-codegen-response.items.baseType}}} CurrentItem = nullptr;
 						{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
 						{{/vendorExtensions.x-codegen-response.items.isString}}
 						KnetikCloudJson::FromJsonValue<>(ItemJsonValue, CurrentItem);
@@ -231,7 +231,7 @@ void U{{classname}}::{{operationId}}OnResponseReceived(FHttpRequestPtr Request, 
 					{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem;
 					{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
 					{{^vendorExtensions.x-codegen-response.items.isPrimitiveType}}
-					U{{{vendorExtensions.x-codegen-response.items.baseType}}}* CurrentItem = nullptr;
+					{{{vendorExtensions.x-codegen-response.items.baseType}}} CurrentItem = nullptr;
 					{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
 					{{/vendorExtensions.x-codegen-response.items.isString}}
 					KnetikCloudJson::FromJsonValue<>(KeyValuePair.Value, CurrentItem);

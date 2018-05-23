@@ -12,7 +12,7 @@
 #pragma optimize("", off)
 #endif // KNETIK_CLOUD_DEBUG
 
-U{{classname}}::U{{classname}}()
+{{classname}}::{{classname}}()
 {
 	{{#vars}}
 	{{^isInherited}}
@@ -33,14 +33,14 @@ U{{classname}}::U{{classname}}()
 	{{/vars}}
 }
 
-U{{classname}}::~U{{classname}}()
+{{classname}}::~{{classname}}()
 {
 }
 
-TSharedPtr<FJsonObject> U{{classname}}::ToJson() const
+TSharedPtr<FJsonObject> {{classname}}::ToJson() const
 {
 	{{#parent}}
-	TSharedPtr<FJsonObject> JsonObject(this->U{{{parent}}}::ToJson());
+	TSharedPtr<FJsonObject> JsonObject(this->{{{parent}}}::ToJson());
 	{{/parent}}
 	{{^parent}}
 	TSharedPtr<FJsonObject> JsonObject(new FJsonObject());
@@ -80,10 +80,10 @@ TSharedPtr<FJsonObject> U{{classname}}::ToJson() const
 	return JsonObject;
 }
 
-void U{{classname}}::FromJson(TSharedPtr<FJsonObject> JsonObject)
+void {{classname}}::FromJson(TSharedPtr<FJsonObject> JsonObject)
 {
 	{{#parent}}
-	this->U{{{parent}}}::FromJson(JsonObject);
+	this->{{{parent}}}::FromJson(JsonObject);
 	{{/parent}}
 	{{#vars}}
 	{{^isInherited}}
@@ -103,7 +103,7 @@ void U{{classname}}::FromJson(TSharedPtr<FJsonObject> JsonObject)
 			{{{items.datatype}}} CurrentItem;
 			{{/items.isPrimitiveType}}
 			{{^items.isPrimitiveType}}
-			U{{{items.baseType}}}* CurrentItem = nullptr;
+			{{{items.baseType}}} CurrentItem = nullptr;
 			{{/items.isPrimitiveType}}
 			{{/items.isString}}
 			KnetikCloudJson::FromJsonValue<>(ItemJsonValue, CurrentItem);
@@ -130,7 +130,7 @@ void U{{classname}}::FromJson(TSharedPtr<FJsonObject> JsonObject)
 			{{{items.datatype}}} CurrentItem;
 			{{/items.isPrimitiveType}}
 			{{^items.isPrimitiveType}}
-			U{{{items.baseType}}}* CurrentItem = nullptr;
+			{{{items.baseType}}} CurrentItem = nullptr;
 			{{/items.isPrimitiveType}}
 			{{/items.isString}}
 			KnetikCloudJson::FromJsonValue<>(KeyValuePair.Value, CurrentItem);
@@ -148,14 +148,14 @@ void U{{classname}}::FromJson(TSharedPtr<FJsonObject> JsonObject)
 }
 {{#vendorExtensions.x-discriminator-value}}
 
-FString U{{classname}}::GetSubtypeString()
+FString {{classname}}::GetSubtypeString()
 {
 	return "{{vendorExtensions.x-discriminator-value}}";
 }
 
-U{{{parent}}}* U{{classname}}::CreateSubtype()
+{{{parent}}} {{classname}}::CreateSubtype()
 {
-	return NewObject<U{{classname}}>();
+	return NewObject<{{classname}}>();
 }
 {{/vendorExtensions.x-discriminator-value}}
 {{/model}}

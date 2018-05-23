@@ -16,7 +16,7 @@
 #include <Core.h>
 #include <Runtime/Online/HTTP/Public/Http.h>
 #include <functional>
-#include "{{classname}}.generated.h"
+#include "{{classFilename}}.generated.h"
 
 {{#operation}}
 {{#returnType}}
@@ -32,7 +32,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(F{{operationId}}Delegate, bool, bSu
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(F{{operationId}}Delegate, bool, bSuccessful, const FString&, Response);
 {{/vendorExtensions.x-codegen-response.isString}}
 {{^vendorExtensions.x-codegen-response.isString}}
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(F{{operationId}}Delegate, bool, bSuccessful, const U{{{returnBaseType}}}*, Response);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(F{{operationId}}Delegate, bool, bSuccessful, const {{{returnBaseType}}}*, Response);
 {{/vendorExtensions.x-codegen-response.isString}}
 {{/vendorExtensions.x-codegen-response.isPrimitiveType}}
 {{/returnContainer}}
@@ -44,13 +44,13 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(F{{operationId}}Delegate, bool, bSuc
 
 
 UCLASS(BlueprintType)
-class KNETIKCLOUDSDK_API U{{classname}} : public UObject
+class KNETIKCLOUDSDK_API {{classname}} : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	U{{classname}}();
-	virtual ~U{{classname}}();
+	{{classname}}();
+	virtual ~{{classname}}();
 	{{#operation}}
 
 	UPROPERTY(BlueprintAssignable, Category = "KnetikCloud")
@@ -91,12 +91,12 @@ public:
 	typedef std::function<void(bool, const FString&)> {{operationId}}CallbackFunction;
 	{{/vendorExtensions.x-codegen-response.isString}}
 	{{^vendorExtensions.x-codegen-response.isString}}
-	const U{{{returnBaseType}}}* {{operationId}}ServerResponse;
+	const {{{returnBaseType}}}* {{operationId}}ServerResponse;
 
 	/// <summary>
 	/// {{operationId}} callback that will be invoked when the server response is received.
 	/// </summary>
-	typedef std::function<void(bool, const U{{{returnBaseType}}}*)> {{operationId}}CallbackFunction;
+	typedef std::function<void(bool, const {{{returnBaseType}}}*)> {{operationId}}CallbackFunction;
 	{{/vendorExtensions.x-codegen-response.isString}}
 	{{/vendorExtensions.x-codegen-response.isPrimitiveType}}
 	{{/returnContainer}}

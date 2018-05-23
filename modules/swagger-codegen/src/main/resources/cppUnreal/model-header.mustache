@@ -14,24 +14,24 @@
 {{/imports}}
 #include <Core.h>
 #include <Runtime/Json/Public/Dom/JsonObject.h>
-#include "{{classname}}.generated.h"
+#include "{{classFilename}}.generated.h"
 
 
 UCLASS(BlueprintType)
-class KNETIKCLOUDSDK_API U{{classname}} : public {{#parent}}U{{{parent}}}{{/parent}}{{^parent}}UObject{{/parent}}
+class KNETIKCLOUDSDK_API {{classname}} : public {{#parent}}{{{parent}}}{{/parent}}{{^parent}}UObject{{/parent}}
 {
 	GENERATED_BODY()
 
 public:
-	U{{classname}}();
-	virtual ~U{{classname}}();
+	{{classname}}();
+	virtual ~{{classname}}();
 
 	virtual TSharedPtr<FJsonObject> ToJson() const;
 	virtual void FromJson(TSharedPtr<FJsonObject> JsonObject);
 	{{#vendorExtensions.x-discriminator-value}}
 
 	static FString GetSubtypeString();
-	static U{{{parent}}}* CreateSubtype();
+	static {{{parent}}} CreateSubtype();
 	{{/vendorExtensions.x-discriminator-value}}
 	{{#vars}}
 	{{^isInherited}}
@@ -52,7 +52,7 @@ public:
 	{{{baseType}}} {{name}};
 	{{/isPrimitiveType}}
 	{{^isPrimitiveType}}
-	U{{{baseType}}}* {{name}};
+	{{{datatype}}} {{name}};
 	{{/isPrimitiveType}}
 	{{/isString}}
 	{{/isContainer}}
