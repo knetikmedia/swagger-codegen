@@ -16,7 +16,6 @@ import io.swagger.codegen.CliOption;
 import io.swagger.codegen.CodegenConstants;
 import io.swagger.codegen.CodegenModel;
 import io.swagger.codegen.CodegenOperation;
-import io.swagger.codegen.CodegenParameter;
 import io.swagger.codegen.CodegenProperty;
 import io.swagger.codegen.CodegenType;
 import io.swagger.codegen.SupportingFile;
@@ -117,21 +116,23 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 		reservedWords = new HashSet<String>();
 		reservedWords.add("template");
 
-		supportingFiles.add(new SupportingFile("modelbase-header.mustache", "", "ModelBase.h"));
-		supportingFiles.add(new SupportingFile("modelbase-source.mustache", "", "ModelBase.cpp"));
-		supportingFiles.add(new SupportingFile("apiclient-header.mustache", "", "ApiClient.h"));
-		supportingFiles.add(new SupportingFile("apiclient-source.mustache", "", "ApiClient.cpp"));
-		supportingFiles.add(new SupportingFile("apiconfiguration-header.mustache", "", "ApiConfiguration.h"));
-		supportingFiles.add(new SupportingFile("apiconfiguration-source.mustache", "", "ApiConfiguration.cpp"));
-		supportingFiles.add(new SupportingFile("apiexception-header.mustache", "", "ApiException.h"));
-		supportingFiles.add(new SupportingFile("apiexception-source.mustache", "", "ApiException.cpp"));
-		supportingFiles.add(new SupportingFile("ihttpbody-header.mustache", "", "IHttpBody.h"));
-		supportingFiles.add(new SupportingFile("jsonbody-header.mustache", "", "JsonBody.h"));
-		supportingFiles.add(new SupportingFile("jsonbody-source.mustache", "", "JsonBody.cpp"));
-		supportingFiles.add(new SupportingFile("httpcontent-header.mustache", "", "HttpContent.h"));
-		supportingFiles.add(new SupportingFile("httpcontent-source.mustache", "", "HttpContent.cpp"));
-		supportingFiles.add(new SupportingFile("multipart-header.mustache", "", "MultipartFormData.h"));
-		supportingFiles.add(new SupportingFile("multipart-source.mustache", "", "MultipartFormData.cpp"));
+		supportingFiles.add(new SupportingFile("modelbase-header.mustache", "", "KnetikCloudModelBase.h"));
+		supportingFiles.add(new SupportingFile("modelbase-source.mustache", "", "KnetikCloudModelBase.cpp"));
+		supportingFiles.add(new SupportingFile("apiclient-header.mustache", "", "KnetikCloudApiClient.h"));
+		supportingFiles.add(new SupportingFile("apiclient-source.mustache", "", "KnetikCloudApiClient.cpp"));
+		supportingFiles
+				.add(new SupportingFile("apiconfiguration-header.mustache", "", "KnetikCloudApiConfiguration.h"));
+		supportingFiles
+				.add(new SupportingFile("apiconfiguration-source.mustache", "", "KnetikCloudApiConfiguration.cpp"));
+		supportingFiles.add(new SupportingFile("apiexception-header.mustache", "", "KnetikCloudApiException.h"));
+		supportingFiles.add(new SupportingFile("apiexception-source.mustache", "", "KnetikCloudApiException.cpp"));
+		supportingFiles.add(new SupportingFile("ihttpbody-header.mustache", "", "KnetikCloudIHttpBody.h"));
+		supportingFiles.add(new SupportingFile("jsonbody-header.mustache", "", "KnetikCloudJsonBody.h"));
+		supportingFiles.add(new SupportingFile("jsonbody-source.mustache", "", "KnetikCloudJsonBody.cpp"));
+		supportingFiles.add(new SupportingFile("httpcontent-header.mustache", "", "KnetikCloudHttpContent.h"));
+		supportingFiles.add(new SupportingFile("httpcontent-source.mustache", "", "KnetikCloudHttpContent.cpp"));
+		supportingFiles.add(new SupportingFile("multipart-header.mustache", "", "KnetikCloudMultipartFormData.h"));
+		supportingFiles.add(new SupportingFile("multipart-source.mustache", "", "KnetikCloudMultipartFormData.cpp"));
 		// supportingFiles.add(new SupportingFile("gitignore.mustache", "",
 		// ".gitignore"));
 		// supportingFiles.add(new SupportingFile("git_push.sh.mustache", "",
@@ -140,21 +141,22 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 		// "CMakeLists.txt"));
 
 		languageSpecificPrimitives = new HashSet<String>(
-				Arrays.asList("int", "char", "bool", "long", "float", "double", "int32", "int64"));
+				Arrays.asList("int", "char", "bool", "long", "float", "int32"));
 
 		typeMapping = new HashMap<String, String>();
 		typeMapping.put("date", "utility::datetime");
 		typeMapping.put("DateTime", "utility::datetime");
 		typeMapping.put("string", "FString");
 		typeMapping.put("integer", "int32");
-		typeMapping.put("long", "int64");
+		typeMapping.put("long", "int32");
 		typeMapping.put("boolean", "bool");
 		typeMapping.put("array", "TArray");
 		typeMapping.put("map", "TMap");
 		typeMapping.put("file", "HttpContent");
 		typeMapping.put("object", "KnetikObject");
 		typeMapping.put("binary", "std::string");
-		typeMapping.put("number", "double");
+		typeMapping.put("number", "float");
+		typeMapping.put("double", "float");
 		typeMapping.put("UUID", "FString");
 
 		super.importMapping = new HashMap<String, String>();
@@ -227,8 +229,12 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 	public String toModelImport(String name) {
 		if (importMapping.containsKey(name))
 			return importMapping.get(name);
-		else
+		else {
+			if (name.startsWith("UKnetikCloud")) {
+				name = name.substring(1);
+			}
 			return "#include \"model/" + name + ".h\"";
+		}
 	}
 
 	@Override
@@ -238,6 +244,9 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 		Set<String> oldImports = codegenModel.imports;
 		codegenModel.imports = new HashSet<String>();
 		for (String imp : oldImports) {
+			if (imp.equals("UKnetikCloud" + name)) {
+				continue;
+			}
 			String newImp = toModelImport(imp);
 			if (!newImp.isEmpty()) {
 				codegenModel.imports.add(newImp);
@@ -276,9 +285,13 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 		}
 
 		if (!isNullOrEmpty(model.parent)) {
-			parentModels.add(model.parent);
-			if (!childrenByParent.containsEntry(model.parent, model)) {
-				childrenByParent.put(model.parent, model);
+			String parent = model.parent;
+			if (parent.startsWith("UKnetikCloud")) {
+				parent = parent.substring(12);
+			}
+			parentModels.add(parent);
+			if (!childrenByParent.containsEntry(parent, model)) {
+				childrenByParent.put(parent, model);
 			}
 		}
 	}
@@ -289,12 +302,12 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 
 	@Override
 	public String toModelFilename(String name) {
-		return escapeGenerics(initialCaps(name));
+		return "KnetikCloud" + escapeGenerics(initialCaps(name));
 	}
 
 	@Override
 	public String toApiFilename(String name) {
-		return escapeGenerics(initialCaps(name) + "Api");
+		return "KnetikCloud" + escapeGenerics(initialCaps(name) + "Api");
 	}
 
 	/**
@@ -323,7 +336,7 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 				|| p instanceof FileProperty || languageSpecificPrimitives.contains(swaggerType))
 			return toModelName(swaggerType);
 
-		return "TSharedPtr<" + swaggerType + ">";
+		return swaggerType;
 	}
 
 	@Override
@@ -353,28 +366,12 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 		} else if (p instanceof ArrayProperty) {
 			ArrayProperty ap = (ArrayProperty) p;
 			String inner = getSwaggerType(ap.getItems());
-			if (!languageSpecificPrimitives.contains(inner)) {
-				inner = "TSharedPtr<" + inner + ">";
-			}
 			return "TArray<" + inner + ">()";
 		} else if (p instanceof RefProperty) {
 			RefProperty rp = (RefProperty) p;
 			return "new " + toModelName(rp.getSimpleRef()) + "()";
 		}
 		return "nullptr";
-	}
-
-	@Override
-	public void postProcessParameter(CodegenParameter parameter) {
-		super.postProcessParameter(parameter);
-
-		boolean isPrimitiveType = parameter.isPrimitiveType == Boolean.TRUE;
-		boolean isListContainer = parameter.isListContainer == Boolean.TRUE;
-		boolean isString = parameter.isString == Boolean.TRUE;
-
-		if (!isPrimitiveType && !isListContainer && !isString && !parameter.dataType.startsWith("TSharedPtr")) {
-			parameter.dataType = "TSharedPtr<" + parameter.dataType + ">";
-		}
 	}
 
 	/**
@@ -406,12 +403,12 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 				|| languageSpecificPrimitives.contains(type))
 			return type;
 		else
-			return escapeGenerics(Character.toUpperCase(type.charAt(0)) + type.substring(1));
+			return "UKnetikCloud" + escapeGenerics(Character.toUpperCase(type.charAt(0)) + type.substring(1));
 	}
 
 	@Override
 	public String toApiName(String type) {
-		return escapeGenerics(Character.toUpperCase(type.charAt(0)) + type.substring(1) + "Api");
+		return "UKnetikCloud" + escapeGenerics(Character.toUpperCase(type.charAt(0)) + type.substring(1) + "Api");
 	}
 
 	private String escapeGenerics(String string) {
@@ -451,7 +448,11 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 
 	private void postProcessParentModels(final Map<String, Object> models) {
 		for (final String parent : parentModels) {
-			final CodegenModel parentModel = ModelUtils.getModelByName(parent, models);
+			String parentSub = parent;
+			if (parentSub.startsWith("UKnetikCloud")) {
+				parentSub = parentSub.substring(12);
+			}
+			final CodegenModel parentModel = ModelUtils.getModelByName(parentSub, models);
 			final Collection<CodegenModel> childrenModels = childrenByParent.get(parent);
 			for (final CodegenModel child : childrenModels) {
 				processParentPropertiesInChildModel(parentModel, child);
