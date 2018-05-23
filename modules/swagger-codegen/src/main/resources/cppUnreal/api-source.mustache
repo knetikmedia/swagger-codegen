@@ -3,202 +3,177 @@
 
 #include "{{classFilename}}.h"
 
-#if defined(KNETIK_CLOUD_DEBUG)
-#pragma optimize("", off)
-#endif // KNETIK_CLOUD_DEBUG
-
 #include "KnetikCloudClient.h"
 #include "KnetikCloudJson.h"
 
 #include <Runtime/Json/Public/Serialization/JsonReader.h>
 #include <Runtime/Json/Public/Serialization/JsonSerializer.h>
 
+#if defined(KNETIK_CLOUD_DEBUG)
+#pragma optimize("", off)
+#endif // KNETIK_CLOUD_DEBUG
 
-namespace KnetikCloud
+{{classname}}::{{classname}}()
 {
-	{{classname}}::{{classname}}()
-	{
-		{{#operation}}
-		b{{operationId}}IsComplete = false;
-		b{{operationId}}WasSuccessful = false;
-		{{#returnType}}
-		{{^returnContainer}}
-		{{#vendorExtensions.x-codegen-response.isPrimitiveType}}
-		{{operationId}}ServerResponse = {{vendorExtensions.x-codegen-response.defaultValue}};
-		{{/vendorExtensions.x-codegen-response.isPrimitiveType}}
-		{{^vendorExtensions.x-codegen-response.isPrimitiveType}}
-		{{#vendorExtensions.x-codegen-response.isString}}
-		{{operationId}}ServerResponse = TEXT("");
-		{{/vendorExtensions.x-codegen-response.isString}}
-		{{^vendorExtensions.x-codegen-response.isString}}
-		{{operationId}}ServerResponse = MakeShareable(new {{{returnBaseType}}}());
-		{{/vendorExtensions.x-codegen-response.isString}}
-		{{/vendorExtensions.x-codegen-response.isPrimitiveType}}
-		{{/returnContainer}}
-		{{/returnType}}
-
-		{{/operation}}
-	}
-
-	{{classname}}::~{{classname}}()
-	{
-	}
-
 	{{#operation}}
-	void {{classname}}::{{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}}, {{/allParams}}{{operationId}}CallbackFunction Callback)
+	b{{operationId}}IsComplete = false;
+	b{{operationId}}WasSuccessful = false;
+	{{#returnType}}
+	{{^returnContainer}}
+	{{#vendorExtensions.x-codegen-response.isPrimitiveType}}
+	{{operationId}}ServerResponse = {{vendorExtensions.x-codegen-response.defaultValue}};
+	{{/vendorExtensions.x-codegen-response.isPrimitiveType}}
+	{{^vendorExtensions.x-codegen-response.isPrimitiveType}}
+	{{#vendorExtensions.x-codegen-response.isString}}
+	{{operationId}}ServerResponse = TEXT("");
+	{{/vendorExtensions.x-codegen-response.isString}}
+	{{^vendorExtensions.x-codegen-response.isString}}
+	{{operationId}}ServerResponse = NewObject<{{{returnBaseType}}}>();
+	{{/vendorExtensions.x-codegen-response.isString}}
+	{{/vendorExtensions.x-codegen-response.isPrimitiveType}}
+	{{/returnContainer}}
+	{{/returnType}}
+	{{/operation}}
+}
+
+{{classname}}::~{{classname}}()
+{
+}
+{{#operation}}
+
+void {{classname}}::Set{{operationId}}Callback({{operationId}}CallbackFunction Callback)
+{
+	{{operationId}}Callback = Callback;
+}
+
+void {{classname}}::Remove{{operationId}}Callback()
+{
+	{{operationId}}Callback = nullptr;
+}
+
+void {{classname}}::{{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
+{
+	{{#allParams}}
+	{{#required}}
+	{{^isPrimitiveType}}
+	{{^isContainer}}
+	if ({{paramName}} == nullptr)
 	{
-		{{#allParams}}
-		{{#required}}
-		{{^isPrimitiveType}}
-		{{^isContainer}}
-		if ({{paramName}}.IsValid())
-		{
-			KnetikCloudLogger::LogError(400, "Missing required parameter '{{paramName}}' when calling {{classname}}->{{operationId}}");
-			return;
-		}
-		
-		{{/isContainer}}
-		{{/isPrimitiveType}}
-		{{/required}}
-		{{/allParams}}
-		FString Path("{{{path}}}");
-		TArray<FString> AuthTypes;
-		TMap<FString, FString> QueryParams;
-		TMap<FString, FString> FormParams;
-		FString JsonBody("");
+		KnetikCloudLogger::LogError(KnetikCloudConstants::HttpGenericErrorCode, "Missing required parameter '{{paramName}}' when calling {{classname}}->{{operationId}}");
+		return;
+	}
+	
+	{{/isContainer}}
+	{{/isPrimitiveType}}
+	{{/required}}
+	{{/allParams}}
+	FString Path("{{{path}}}");
+	TArray<FString> AuthTypes;
+	TMap<FString, FString> QueryParams;
+	TMap<FString, FString> FormParams;
+	FString JsonBody("");
 
-		{{#pathParams}}
-		FString {{{paramName}}}Replacement("{");
-		{{{paramName}}}Replacement.Append("{{baseName}}");
-		{{{paramName}}}Replacement.Append("}");
-		Path = Path.Replace(*{{{paramName}}}Replacement, *KnetikCloudJson::ToContentString({{{paramName}}}));
-		{{/pathParams}}
+	{{#pathParams}}
+	FString {{{paramName}}}Replacement("{");
+	{{{paramName}}}Replacement.Append("{{baseName}}");
+	{{{paramName}}}Replacement.Append("}");
+	Path = Path.Replace(*{{{paramName}}}Replacement, *KnetikCloudJson::ToContentString({{{paramName}}}));
+	{{/pathParams}}
 
-		b{{operationId}}IsComplete = false;
-		b{{operationId}}WasSuccessful = false;
-		{{operationId}}Callback = Callback;
+	b{{operationId}}IsComplete = false;
+	b{{operationId}}WasSuccessful = false;
 
-		{{#allParams}}
-		{{^isBodyParam}}
-		{{^isPathParam}}
-		{{#isQueryParam}}
-		{{#isString}}
-		if ({{paramName}}.Len() > 0)
-		{
-			QueryParams.Add("{{baseName}}", KnetikCloudJson::ToContentString({{paramName}}));
-		}
-		{{/isString}}
-		{{^isString}}
-		{{#isPrimitiveType}}
+	{{#allParams}}
+	{{^isBodyParam}}
+	{{^isPathParam}}
+	{{#isQueryParam}}
+	{{#isString}}
+	if ({{paramName}}.Len() > 0)
+	{
 		QueryParams.Add("{{baseName}}", KnetikCloudJson::ToContentString({{paramName}}));
-		{{/isPrimitiveType}}
-		{{^isPrimitiveType}}
-		if ({{paramName}}.IsValid())
-		{
-			QueryParams.Add("{{baseName}}", KnetikCloudJson::ToContentString({{paramName}}));
-		}
-		{{/isPrimitiveType}}
-		{{/isString}}
+	}
+	{{/isString}}
+	{{^isString}}
+	{{#isPrimitiveType}}
+	QueryParams.Add("{{baseName}}", KnetikCloudJson::ToContentString({{paramName}}));
+	{{/isPrimitiveType}}
+	{{^isPrimitiveType}}
+	if ({{paramName}} != nullptr)
+	{
+		QueryParams.Add("{{baseName}}", KnetikCloudJson::ToContentString({{paramName}}));
+	}
+	{{/isPrimitiveType}}
+	{{/isString}}
 
-		{{/isQueryParam}}
-		{{#isFormParam}}
-		{{#isString}}
-		if ({{paramName}}.Len() > 0)
-		{
-			FormParams.Add("{{baseName}}", KnetikCloudJson::ToContentString({{paramName}}));
-		}
-		{{/isString}}
-		{{^isString}}
-		{{#isPrimitiveType}}
+	{{/isQueryParam}}
+	{{#isFormParam}}
+	{{#isString}}
+	if ({{paramName}}.Len() > 0)
+	{
 		FormParams.Add("{{baseName}}", KnetikCloudJson::ToContentString({{paramName}}));
-		{{/isPrimitiveType}}
-		{{^isPrimitiveType}}
-		if ({{paramName}}.IsValid())
-		{
-			FormParams.Add("{{baseName}}", KnetikCloudJson::ToContentString({{paramName}}));
-		}
-		{{/isPrimitiveType}}
-		{{/isString}}
-
-		{{/isFormParam}}
-		{{/isPathParam}}
-		{{/isBodyParam}}
-		{{/allParams}}
-		{{#bodyParam}}
-		TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject());
-		{{#isListContainer}}
-		TArray <TSharedPtr<FJsonValue>> JsonValueArray;
-		for (auto& CurrentItem : {{paramName}})
-		{
-			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<>(CurrentItem);
-			JsonValueArray.Add(ItemJsonValue);
-		}
-		
-		JsonObject->SetArrayField("{{paramName}}", JsonValueArray);
-		{{/isListContainer}}
-		{{^isListContainer}}
-		KnetikCloudJson::AddToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", {{paramName}});
-		{{/isListContainer}}
-		JsonBody = KnetikCloudJson::ToContentString(JsonObject);
-
-		{{/bodyParam}}
-		{{#authMethods}}
-		AuthTypes.Add("{{name}}");
-		{{/authMethods}}
-
-		// Make the actual request...
-		TSharedRef<IHttpRequest> Request = KnetikCloudClient::DefaultClient->CreateRequest();
-		Request->OnProcessRequestComplete().BindRaw(this, &{{classname}}::{{operationId}}OnResponseReceived);
-		KnetikCloudLogger::LogInfo("{{operationId}}: Sending server request...");
-		KnetikCloudClient::DefaultClient->CallApi(
-			Path,
-			"{{httpMethod}}",
-			AuthTypes,
-			QueryParams,
-			FormParams,
-			JsonBody,
-			Request);
 	}
-
-	bool {{classname}}::{{operationId}}IsComplete() const
+	{{/isString}}
+	{{^isString}}
+	{{#isPrimitiveType}}
+	FormParams.Add("{{baseName}}", KnetikCloudJson::ToContentString({{paramName}}));
+	{{/isPrimitiveType}}
+	{{^isPrimitiveType}}
+	if ({{paramName}} != nullptr)
 	{
-		return b{{operationId}}IsComplete;
+		FormParams.Add("{{baseName}}", KnetikCloudJson::ToContentString({{paramName}}));
 	}
+	{{/isPrimitiveType}}
+	{{/isString}}
 
-	bool {{classname}}::{{operationId}}WasSuccessful() const
+	{{/isFormParam}}
+	{{/isPathParam}}
+	{{/isBodyParam}}
+	{{/allParams}}
+	{{#bodyParam}}
+	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject());
+	{{#isListContainer}}
+	TArray <TSharedPtr<FJsonValue>> JsonValueArray;
+	for (auto& CurrentItem : {{paramName}})
 	{
-		return b{{operationId}}WasSuccessful;
+		TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<>(CurrentItem);
+		JsonValueArray.Add(ItemJsonValue);
 	}
+	
+	JsonObject->SetArrayField("{{paramName}}", JsonValueArray);
+	{{/isListContainer}}
+	{{^isListContainer}}
+	KnetikCloudJson::AddToJsonObject<>(JsonObject, "{{baseName}}", {{paramName}});
+	{{/isListContainer}}
+	JsonBody = KnetikCloudJson::ToContentString(JsonObject);
 
-	void {{classname}}::{{operationId}}OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+	{{/bodyParam}}
+	{{#authMethods}}
+	AuthTypes.Add("{{name}}");
+	{{/authMethods}}
+	KnetikCloudLogger::LogInfo("getOAuthToken: Sending server request...");
+	TSharedRef<IHttpRequest> Request = UKnetikCloudClient::CreateRequest(
+		Path,
+		"{{httpMethod}}",
+		AuthTypes,
+		QueryParams,
+		FormParams,
+		JsonBody);
+	Request->OnProcessRequestComplete().BindUObject(this, &{{classname}}::{{operationId}}OnResponseReceived);
+	Request->ProcessRequest();
+}
+
+void {{classname}}::{{operationId}}OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	b{{operationId}}IsComplete = true;
+	b{{operationId}}WasSuccessful = bWasSuccessful;
+
+	if (Response.IsValid())
 	{
-		b{{operationId}}IsComplete = true;
-		b{{operationId}}WasSuccessful = bWasSuccessful;
-
-		if (!Response.IsValid())
+		int32 ResponseCode = Response->GetResponseCode();
+		if (ResponseCode == KnetikCloudConstants::HttpSuccessfulStatusCode)
 		{
-			b{{operationId}}WasSuccessful = false;
-			KnetikCloudLogger::LogError(0, "{{operationId}}: Unknown error - invalid response!");
-		}
+			{{#returnType}}
 
-		if (Response.IsValid())
-		{
-			int32 ResponseCode = Response->GetResponseCode();
-			if (ResponseCode != KnetikCloud::KnetikCloudConstants::HttpSuccessfulStatusCode)
-			{
-				b{{operationId}}WasSuccessful = false;
-				KnetikCloudLogger::LogError(ResponseCode, "{{operationId}}: Error response received!");
-			}
-		}
-
-		if (!b{{operationId}}WasSuccessful)
-		{
-			KnetikCloudLogger::LogError(0, "{{operationId}}: was unsuccessful!");
-		}
-
-		{{#returnType}}
-		if (Response.IsValid())
-		{
 			FString ContentString = Response->GetContentAsString();
 #if defined(KNETIK_CLOUD_DEBUG)
 			KnetikCloudLogger::LogInfo("{{operationId}} content string: " + ContentString);
@@ -213,7 +188,17 @@ namespace KnetikCloud
 				{
 					if (ItemJsonValue.IsValid())
 					{
+						{{#vendorExtensions.x-codegen-response.items.isString}}
+						FString CurrentItem;
+						{{/vendorExtensions.x-codegen-response.items.isString}}
+						{{^vendorExtensions.x-codegen-response.items.isString}}
+						{{#vendorExtensions.x-codegen-response.items.isPrimitiveType}}
 						{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem;
+						{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
+						{{^vendorExtensions.x-codegen-response.items.isPrimitiveType}}
+						{{{vendorExtensions.x-codegen-response.items.baseType}}} CurrentItem = nullptr;
+						{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
+						{{/vendorExtensions.x-codegen-response.items.isString}}
 						KnetikCloudJson::FromJsonValue<>(ItemJsonValue, CurrentItem);
 						{{operationId}}ServerResponse.Add(CurrentItem);
 					}
@@ -238,7 +223,17 @@ namespace KnetikCloud
 			{
 				for (auto& KeyValuePair : JsonObject->Values)
 				{
+					{{#vendorExtensions.x-codegen-response.items.isString}}
+					FString CurrentItem;
+					{{/vendorExtensions.x-codegen-response.items.isString}}
+					{{^vendorExtensions.x-codegen-response.items.isString}}
+					{{#vendorExtensions.x-codegen-response.items.isPrimitiveType}}
 					{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem;
+					{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
+					{{^vendorExtensions.x-codegen-response.items.isPrimitiveType}}
+					{{{vendorExtensions.x-codegen-response.items.baseType}}} CurrentItem = nullptr;
+					{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
+					{{/vendorExtensions.x-codegen-response.items.isString}}
 					KnetikCloudJson::FromJsonValue<>(KeyValuePair.Value, CurrentItem);
 					{{operationId}}ServerResponse.Add(KeyValuePair.Key, CurrentItem);
 				}
@@ -265,7 +260,7 @@ namespace KnetikCloud
 			{
 				if (JsonObject.IsValid())
 				{
-					{{operationId}}ServerResponse = KnetikCloudJson::ObjectFromJsonObject<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject);
+					{{operationId}}ServerResponse = KnetikCloudJson::UObjectFromJsonObject<U{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject);
 				}
 				else
 				{
@@ -282,17 +277,36 @@ namespace KnetikCloud
 			{
 				KnetikCloudLogger::LogInfo("{{operationId}}: Received response successfully.");
 			}
+			{{/returnType}}
 		}
-		{{/returnType}}
-
-		{{#returnType}}
-		{{operationId}}Callback(bWasSuccessful, {{operationId}}ServerResponse);
-		{{/returnType}}
-		{{^returnType}}
-		{{operationId}}Callback(bWasSuccessful);
-		{{/returnType}}
+		else
+		{
+			b{{operationId}}WasSuccessful = false;
+			KnetikCloudLogger::LogError(ResponseCode, "{{operationId}}: Error response received!");
+		}
+	}
+	else
+	{
+		b{{operationId}}WasSuccessful = false;
+		KnetikCloudLogger::LogError(KnetikCloudConstants::GenericErrorCode, "{{operationId}}: Unknown error - invalid response!");
 	}
 
-	{{/operation}}
+	{{#returnType}}
+	if ({{operationId}}Callback != nullptr)
+	{
+		{{operationId}}Callback(bWasSuccessful, {{operationId}}ServerResponse);
+	}
+
+	On{{operationId}}.Broadcast(bWasSuccessful, {{operationId}}ServerResponse);
+	{{/returnType}}
+	{{^returnType}}
+	if ({{operationId}}Callback != nullptr)
+	{
+		{{operationId}}Callback(bWasSuccessful);
+	}
+
+	On{{operationId}}.Broadcast(bWasSuccessful);
+	{{/returnType}}
 }
+{{/operation}}
 {{/operations}}

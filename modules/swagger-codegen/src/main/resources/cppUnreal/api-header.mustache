@@ -8,65 +8,123 @@
 #pragma once
 
 {{^parent}}
-#include "KnetikCloudApi.h"
+#include "KnetikCloud.h"
 {{/parent}}
-{{#imports}}{{{import}}}
+{{#imports}}
+{{{import}}}
 {{/imports}}
+#include <Core.h>
+#include <Runtime/Online/HTTP/Public/Http.h>
+#include <functional>
+#include "{{classFilename}}.generated.h"
 
-namespace KnetikCloud
+{{#operation}}
+{{#returnType}}
+{{#returnContainer}}
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(F{{operationId}}Delegate, bool, bSuccessful, const {{{returnType}}}&, Response);
+{{/returnContainer}}
+{{^returnContainer}}
+{{#vendorExtensions.x-codegen-response.isPrimitiveType}}
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(F{{operationId}}Delegate, bool, bSuccessful, {{{returnBaseType}}}, Response);
+{{/vendorExtensions.x-codegen-response.isPrimitiveType}}
+{{^vendorExtensions.x-codegen-response.isPrimitiveType}}
+{{#vendorExtensions.x-codegen-response.isString}}
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(F{{operationId}}Delegate, bool, bSuccessful, const FString&, Response);
+{{/vendorExtensions.x-codegen-response.isString}}
+{{^vendorExtensions.x-codegen-response.isString}}
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(F{{operationId}}Delegate, bool, bSuccessful, const {{{returnBaseType}}}*, Response);
+{{/vendorExtensions.x-codegen-response.isString}}
+{{/vendorExtensions.x-codegen-response.isPrimitiveType}}
+{{/returnContainer}}
+{{/returnType}}
+{{^returnType}}
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(F{{operationId}}Delegate, bool, bSuccessful);
+{{/returnType}}
+{{/operation}}
+
+
+UCLASS(BlueprintType)
+class KNETIKCLOUDSDK_API {{classname}} : public UObject
 {
-	class {{classname}} : public IKnetikCloudApi
-	{
-	public:
-		{{classname}}();
-		virtual ~{{classname}}();
-		{{#operation}}
+	GENERATED_BODY()
 
-		{{#returnType}}
-		/// <summary>
-		/// {{operationId}} callback that will be invoked when the server response is received.
-		/// </summary>
-		typedef std::function<void(bool, const {{{returnType}}}&)> {{operationId}}CallbackFunction;
-		{{/returnType}}
-		{{^returnType}}
-		/// <summary>
-		/// {{operationId}} callback that will be invoked when the server response is received.
-		/// </summary>
-		typedef std::function<void(bool)> {{operationId}}CallbackFunction;
-		{{/returnType}}
+public:
+	{{classname}}();
+	virtual ~{{classname}}();
+	{{#operation}}
 
-		/// <summary>
-		/// {{summary}}
-		/// </summary>
-		/// <remarks>
-		/// {{notes}}
-		/// </remarks>
-		{{#allParams}}
-		/// <param name="{{paramName}}">{{description}}{{^required}} (optional{{#defaultValue}}, default to {{.}}{{/defaultValue}}){{/required}}</param>
-		{{/allParams}}
-		void {{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}}, {{/allParams}}{{operationId}}CallbackFunction Callback);
+	UPROPERTY(BlueprintAssignable, Category = "KnetikCloud")
+	F{{operationId}}Delegate On{{operationId}};
 
-		bool {{operationId}}IsComplete() const;
-		bool {{operationId}}WasSuccessful() const;
-		{{#returnType}}
-		{{{returnType}}} {{operationId}}ServerResponse;
-		{{/returnType}}
-		{{/operation}}
+	UPROPERTY(BlueprintReadOnly)
+	bool b{{operationId}}IsComplete;
 
-		// Callbacks
-	private:
-		{{#operation}}
-		void {{operationId}}OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
-		{{/operation}}
+	UPROPERTY(BlueprintReadOnly)
+	bool b{{operationId}}WasSuccessful;
 
-		// Data members
-	private:
-		{{#operation}}
-		bool b{{operationId}}IsComplete;
-		bool b{{operationId}}WasSuccessful;
-		{{operationId}}CallbackFunction {{operationId}}Callback;
+	{{#returnType}}
+	UPROPERTY(BlueprintReadOnly)
+	{{#returnContainer}}
+	{{{returnType}}} {{operationId}}ServerResponse;
 
-		{{/operation}}
-	};
-}
+	/// <summary>
+	/// {{operationId}} callback that will be invoked when the server response is received.
+	/// </summary>
+	typedef std::function<void(bool, const {{{returnType}}}&)> {{operationId}}CallbackFunction;
+	{{/returnContainer}}
+	{{^returnContainer}}
+	{{#vendorExtensions.x-codegen-response.isPrimitiveType}}
+	{{{returnType}}} {{operationId}}ServerResponse;
+
+	/// <summary>
+	/// {{operationId}} callback that will be invoked when the server response is received.
+	/// </summary>
+	typedef std::function<void(bool, {{{returnType}}})> {{operationId}}CallbackFunction;
+	{{/vendorExtensions.x-codegen-response.isPrimitiveType}}
+	{{^vendorExtensions.x-codegen-response.isPrimitiveType}}
+	{{#vendorExtensions.x-codegen-response.isString}}
+	FString {{operationId}}ServerResponse;
+
+	/// <summary>
+	/// {{operationId}} callback that will be invoked when the server response is received.
+	/// </summary>
+	typedef std::function<void(bool, const FString&)> {{operationId}}CallbackFunction;
+	{{/vendorExtensions.x-codegen-response.isString}}
+	{{^vendorExtensions.x-codegen-response.isString}}
+	{{{returnType}}} {{operationId}}ServerResponse;
+
+	/// <summary>
+	/// {{operationId}} callback that will be invoked when the server response is received.
+	/// </summary>
+	typedef std::function<void(bool, const {{{returnBaseType}}}*)> {{operationId}}CallbackFunction;
+	{{/vendorExtensions.x-codegen-response.isString}}
+	{{/vendorExtensions.x-codegen-response.isPrimitiveType}}
+	{{/returnContainer}}
+	{{/returnType}}
+	{{^returnType}}
+	/// <summary>
+	/// {{operationId}} callback that will be invoked when the server response is received.
+	/// </summary>
+	typedef std::function<void(bool)> {{operationId}}CallbackFunction;
+	{{/returnType}}
+	void Set{{operationId}}Callback({{operationId}}CallbackFunction Callback);
+	void Remove{{operationId}}Callback();
+
+	/// <summary>
+	/// {{summary}}
+	/// </summary>
+	{{#allParams}}
+	/// <param name="{{paramName}}">{{description}}{{^required}} (optional{{#defaultValue}}, default to {{.}}{{/defaultValue}}){{/required}}</param>
+	{{/allParams}}
+	UFUNCTION(BlueprintCallable, Category = "KnetikCloud")
+	void {{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+	{{/operation}}
+
+private:
+	{{#operation}}
+	void {{operationId}}OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	{{operationId}}CallbackFunction {{operationId}}Callback;
+
+	{{/operation}}
+};
 {{/operations}}
