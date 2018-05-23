@@ -3,193 +3,160 @@
 {{#models}}{{#model}}
 #include "{{classname}}.h"
 
-#if defined(KNETIK_CLOUD_DEBUG)
-#pragma optimize("", off)
-#endif // KNETIK_CLOUD_DEBUG
-
 #include "KnetikCloudConstants.h"
 #include "KnetikCloudJson.h"
 #include "KnetikCloudLogger.h"
 #include "KnetikCloudTypeFactory.h"
 
+#if defined(KNETIK_CLOUD_DEBUG)
+#pragma optimize("", off)
+#endif // KNETIK_CLOUD_DEBUG
 
-namespace KnetikCloud
+U{{classname}}::U{{classname}}()
 {
-	{{classname}}::{{classname}}()
-	{
-		{{#vars}}
-		{{^isInherited}}
-		{{#isNotContainer}}
-		{{#isPrimitiveType}}
-		m{{name}} = {{{defaultValue}}};
-		{{/isPrimitiveType}}
-		{{^isPrimitiveType}}
-		{{#isString}}
-		m{{name}} = {{{defaultValue}}};
-		{{/isString}}
-		{{#isDateTime}}
-		m{{name}} = {{{defaultValue}}};
-		{{/isDateTime}}
-		{{/isPrimitiveType}}
-		{{/isNotContainer}}
-		{{^required}}
-		b{{name}}IsSet = false;
-		{{/required}}
-
-		{{/isInherited}}
-		{{/vars}}
-	}
-
-	{{classname}}::~{{classname}}()
-	{
-	}
-
-	TSharedPtr<FJsonObject> {{classname}}::ToJson() const
-	{
-		{{#parent}}
-		TSharedPtr<FJsonObject> JsonObject(this->{{{parent}}}::ToJson());
-		{{/parent}}
-		{{^parent}}
-		TSharedPtr<FJsonObject> JsonObject(new FJsonObject());
-		{{/parent}}
-		{{#vars}}
-		{{^isInherited}}
-		{{#isListContainer}}
-
-		TArray<TSharedPtr<FJsonValue>> {{name}}JsonValueArray;
-		{{name}}JsonValueArray.Reserve(m{{name}}.Num());
-		for (auto& CurrentItem : m{{name}})
-		{
-			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<>(CurrentItem);
-			{{name}}JsonValueArray.Add(ItemJsonValue);
-		}
-
-		JsonObject->SetArrayField("{{baseName}}", {{name}}JsonValueArray);
-		{{/isListContainer}}
-		{{^isListContainer}}
-		{{#isMapContainer}}
-
-		TSharedPtr<FJsonObject> {{name}}JsonMap = MakeShareable(new FJsonObject());
-		for (auto& KeyValuePair : m{{name}})
-		{
-			TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<>(KeyValuePair.Value);
-			{{name}}JsonMap->Values.Add(KeyValuePair.Key, ItemJsonValue);
-		}
-
-		JsonObject->SetObjectField("{{baseName}}", {{name}}JsonMap);
-		{{/isMapContainer}}
-		{{^isMapContainer}}
-	
-		KnetikCloudJson::AddToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", m{{name}});
-		{{/isMapContainer}}
-		{{/isListContainer}}
-		{{/isInherited}}
-		{{/vars}}
-		return JsonObject;
-	}
-
-	void {{classname}}::FromJson(TSharedPtr<FJsonObject> JsonObject)
-	{
-		{{#parent}}
-		this->{{{parent}}}::FromJson(JsonObject);
-		{{/parent}}
-		{{#vars}}
-		{{^isInherited}}
-		{{#isListContainer}}
-		m{{name}}.Empty();
-		const TArray<TSharedPtr<FJsonValue>>* {{name}}JsonValueArray = nullptr;
-		if (JsonObject->TryGetArrayField("{{baseName}}", {{name}}JsonValueArray))
-		{
-			for (auto& ItemJsonValue : *{{name}}JsonValueArray)
-			{
-				{{{items.datatype}}} CurrentItem;
-				KnetikCloudJson::FromJsonValue<>(ItemJsonValue, CurrentItem);
-				m{{name}}.Add(CurrentItem);
-			}
-		}
-
-		{{/isListContainer}}
-		{{^isListContainer}}
-		{{#isMapContainer}}
-		m{{name}}.Empty();
-		const TSharedPtr<FJsonObject>* {{name}}JsonObject = nullptr;
-		if (JsonObject->TryGetObjectField("{{baseName}}", {{name}}JsonObject))
-		{
-			TMap<FString, TSharedPtr<FJsonValue>> {{name}}JsonValuesMap = (*{{name}}JsonObject)->Values;
-			for (auto& KeyValuePair : {{name}}JsonValuesMap)
-			{
-				{{{items.datatype}}} CurrentItem;
-				KnetikCloudJson::FromJsonValue<>(KeyValuePair.Value, CurrentItem);
-				m{{name}}.Add(KeyValuePair.Key, CurrentItem);
-			}
-		}
-
-		{{/isMapContainer}}
-		{{^isMapContainer}}
-		{{{datatype}}} {{name}}Item;
-		KnetikCloudJson::GetFromJsonObject<>(JsonObject, "{{baseName}}", {{name}}Item);
-		Set{{name}}({{name}}Item);
-
-		{{/isMapContainer}}
-		{{/isListContainer}}
-		{{/isInherited}}
-		{{/vars}}
-	}
-	{{#vendorExtensions.x-discriminator-value}}
-
-	FString {{classname}}::GetSubtypeString()
-	{
-		return "{{vendorExtensions.x-discriminator-value}}";
-	}
-	
-	TSharedPtr<{{{parent}}}> {{classname}}::CreateSubtype()
-	{
-		return TSharedPtr<{{{parent}}}>(new {{classname}}());
-	}
-	{{/vendorExtensions.x-discriminator-value}}
-
 	{{#vars}}
 	{{^isInherited}}
-	{{^isNotContainer}}
-	{{{datatype}}}& {{classname}}::Get{{name}}()
-	{
-		return m{{name}};
-	}
-
-	void {{classname}}::Set{{name}}(const {{{datatype}}}& Value)
-	{
-		m{{name}} = Value;
-		{{^required}}b{{name}}IsSet = true;{{/required}}
-	}
-
-	{{/isNotContainer}}
-	{{#isNotContainer}}
-	{{{datatype}}} {{classname}}::Get{{name}}() const
-	{
-		return m{{name}};
-	}
-
-	void {{classname}}::Set{{name}}(const {{{datatype}}}& Value)
-	{
-		m{{name}} = Value;
-		{{^required}}b{{name}}IsSet = true;{{/required}}
-	}
-
-	{{/isNotContainer}}
-	{{^required}}
-	bool {{classname}}::{{name}}IsSet() const
-	{
-		return b{{name}}IsSet;
-	}
-
-	void {{classname}}::Unset{{name}}()
-	{
-		b{{name}}IsSet = false;
-	}
-
-	{{/required}}
+	{{^isContainer}}
+	{{#isString}}
+	{{name}} = {{{defaultValue}}};
+	{{/isString}}
+	{{^isString}}
+	{{#isPrimitiveType}}
+	{{name}} = {{{defaultValue}}};
+	{{/isPrimitiveType}}
+	{{^isPrimitiveType}}
+	{{name}} = NewObject<U{{{baseType}}}>();
+	{{/isPrimitiveType}}
+	{{/isString}}
+	{{/isContainer}}
 	{{/isInherited}}
 	{{/vars}}
 }
+
+U{{classname}}::~U{{classname}}()
+{
+}
+
+TSharedPtr<FJsonObject> U{{classname}}::ToJson() const
+{
+	{{#parent}}
+	TSharedPtr<FJsonObject> JsonObject(this->U{{{parent}}}::ToJson());
+	{{/parent}}
+	{{^parent}}
+	TSharedPtr<FJsonObject> JsonObject(new FJsonObject());
+	{{/parent}}
+	{{#vars}}
+	{{^isInherited}}
+	{{#isListContainer}}
+
+	TArray<TSharedPtr<FJsonValue>> {{name}}JsonValueArray;
+	{{name}}JsonValueArray.Reserve({{name}}.Num());
+	for (auto& CurrentItem : {{name}})
+	{
+		TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<>(CurrentItem);
+		{{name}}JsonValueArray.Add(ItemJsonValue);
+	}
+
+	JsonObject->SetArrayField("{{baseName}}", {{name}}JsonValueArray);
+	{{/isListContainer}}
+	{{^isListContainer}}
+	{{#isMapContainer}}
+
+	TSharedPtr<FJsonObject> {{name}}JsonMap = MakeShareable(new FJsonObject());
+	for (auto& KeyValuePair : {{name}})
+	{
+		TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<>(KeyValuePair.Value);
+		{{name}}JsonMap->Values.Add(KeyValuePair.Key, ItemJsonValue);
+	}
+
+	JsonObject->SetObjectField("{{baseName}}", {{name}}JsonMap);
+	{{/isMapContainer}}
+	{{^isMapContainer}}
+	KnetikCloudJson::AddToJsonObject<>(JsonObject, "{{baseName}}", {{name}});
+	{{/isMapContainer}}
+	{{/isListContainer}}
+	{{/isInherited}}
+	{{/vars}}
+	return JsonObject;
+}
+
+void U{{classname}}::FromJson(TSharedPtr<FJsonObject> JsonObject)
+{
+	{{#parent}}
+	this->U{{{parent}}}::FromJson(JsonObject);
+	{{/parent}}
+	{{#vars}}
+	{{^isInherited}}
+	{{#isListContainer}}
+
+	{{name}}.Empty();
+	const TArray<TSharedPtr<FJsonValue>>* {{name}}JsonValueArray = nullptr;
+	if (JsonObject->TryGetArrayField("{{baseName}}", {{name}}JsonValueArray))
+	{
+		for (auto& ItemJsonValue : *{{name}}JsonValueArray)
+		{
+			{{#items.isString}}
+			FString CurrentItem;
+			{{/items.isString}}
+			{{^items.isString}}
+			{{#items.isPrimitiveType}}
+			{{{items.datatype}}} CurrentItem;
+			{{/items.isPrimitiveType}}
+			{{^items.isPrimitiveType}}
+			U{{{items.baseType}}}* CurrentItem = nullptr;
+			{{/items.isPrimitiveType}}
+			{{/items.isString}}
+			KnetikCloudJson::FromJsonValue<>(ItemJsonValue, CurrentItem);
+			{{name}}.Add(CurrentItem);
+		}
+	}
+
+	{{/isListContainer}}
+	{{^isListContainer}}
+	{{#isMapContainer}}
+
+	{{name}}.Empty();
+	const TSharedPtr<FJsonObject>* {{name}}JsonObject = nullptr;
+	if (JsonObject->TryGetObjectField("{{baseName}}", {{name}}JsonObject))
+	{
+		TMap<FString, TSharedPtr<FJsonValue>> {{name}}JsonValuesMap = (*{{name}}JsonObject)->Values;
+		for (auto& KeyValuePair : {{name}}JsonValuesMap)
+		{
+			{{#items.isString}}
+			FString CurrentItem;
+			{{/items.isString}}
+			{{^items.isString}}
+			{{#items.isPrimitiveType}}
+			{{{items.datatype}}} CurrentItem;
+			{{/items.isPrimitiveType}}
+			{{^items.isPrimitiveType}}
+			U{{{items.baseType}}}* CurrentItem = nullptr;
+			{{/items.isPrimitiveType}}
+			{{/items.isString}}
+			KnetikCloudJson::FromJsonValue<>(KeyValuePair.Value, CurrentItem);
+			{{name}}.Add(KeyValuePair.Key, CurrentItem);
+		}
+	}
+
+	{{/isMapContainer}}
+	{{^isMapContainer}}
+	KnetikCloudJson::GetFromJsonObject<>(JsonObject, "{{baseName}}", {{name}});
+	{{/isMapContainer}}
+	{{/isListContainer}}
+	{{/isInherited}}
+	{{/vars}}
+}
+{{#vendorExtensions.x-discriminator-value}}
+
+FString U{{classname}}::GetSubtypeString()
+{
+	return "{{vendorExtensions.x-discriminator-value}}";
+}
+
+U{{{parent}}}* U{{classname}}::CreateSubtype()
+{
+	return NewObject<U{{classname}}>();
+}
+{{/vendorExtensions.x-discriminator-value}}
 {{/model}}
 {{/models}}

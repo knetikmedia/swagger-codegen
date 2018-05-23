@@ -8,59 +8,56 @@
 #pragma once
 
 {{^parent}}
-#include "KnetikCloudModel.h"
+#include "KnetikCloud.h"
 {{/parent}}
 {{#imports}}{{{this}}}
 {{/imports}}
+#include <Core.h>
+#include <Runtime/Json/Public/Dom/JsonObject.h>
+#include "{{classname}}.generated.h"
 
-namespace KnetikCloud
+
+UCLASS(BlueprintType)
+class KNETIKCLOUDSDK_API U{{classname}} : public {{#parent}}U{{{parent}}}{{/parent}}{{^parent}}UObject{{/parent}}
 {
+	GENERATED_BODY()
+
+public:
+	U{{classname}}();
+	virtual ~U{{classname}}();
+
+	virtual TSharedPtr<FJsonObject> ToJson() const;
+	virtual void FromJson(TSharedPtr<FJsonObject> JsonObject);
+	{{#vendorExtensions.x-discriminator-value}}
+
+	static FString GetSubtypeString();
+	static U{{{parent}}}* CreateSubtype();
+	{{/vendorExtensions.x-discriminator-value}}
+	{{#vars}}
+	{{^isInherited}}
+
 	/// <summary>
 	/// {{description}}
 	/// </summary>
-	class {{classname}} : public {{#parent}}{{{parent}}}{{/parent}}{{^parent}}IKnetikCloudModel{{/parent}}
-	{
-	public:
-		{{classname}}();
-		virtual ~{{classname}}();
- 
-		virtual TSharedPtr<FJsonObject> ToJson() const;
-		virtual void FromJson(TSharedPtr<FJsonObject> JsonObject);
-		{{#vendorExtensions.x-discriminator-value}}
-
-		static FString GetSubtypeString();
-		static TSharedPtr<{{{parent}}}> CreateSubtype();
-		{{/vendorExtensions.x-discriminator-value}}
-		{{#vars}}
-		{{^isInherited}}
-
-		/// <summary>
-		/// {{description}}
-		/// </summary>
-		{{^isNotContainer}}
-		{{{datatype}}}& Get{{name}}();
-		{{/isNotContainer}}
-		{{#isNotContainer}}
-		{{{datatype}}} Get{{name}}() const;
-		{{/isNotContainer}}
-		{{^required}}
-		bool {{name}}IsSet() const;
-		void Unset{{name}}();
-		{{/required}}
-		void Set{{name}}(const {{{datatype}}}& Value);
-		{{/isInherited}}
-		{{/vars}}
-		
-	protected:
-		{{#vars}}
-		{{^isInherited}}
-		{{{datatype}}} m{{name}};
-		{{^required}}bool b{{name}}IsSet;
-		{{/required}}
-
-		{{/isInherited}}
-		{{/vars}}
-	};
-}
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	{{#isContainer}}
+	{{{datatype}}} {{name}};
+	{{/isContainer}}
+	{{^isContainer}}
+	{{#isString}}
+	FString {{name}};
+	{{/isString}}
+	{{^isString}}
+	{{#isPrimitiveType}}
+	{{{baseType}}} {{name}};
+	{{/isPrimitiveType}}
+	{{^isPrimitiveType}}
+	U{{{baseType}}}* {{name}};
+	{{/isPrimitiveType}}
+	{{/isString}}
+	{{/isContainer}}
+	{{/isInherited}}
+	{{/vars}}
+};
 {{/model}}
 {{/models}}
