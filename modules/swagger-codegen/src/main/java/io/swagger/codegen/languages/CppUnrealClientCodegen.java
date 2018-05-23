@@ -153,7 +153,7 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 		typeMapping.put("array", "TArray");
 		typeMapping.put("map", "TMap");
 		typeMapping.put("file", "HttpContent");
-		typeMapping.put("object", "KnetikObject");
+		typeMapping.put("object", "KnetikCloudObject");
 		typeMapping.put("binary", "std::string");
 		typeMapping.put("number", "float");
 		typeMapping.put("double", "float");
@@ -162,7 +162,7 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 		super.importMapping = new HashMap<String, String>();
 		importMapping.put("FString", "");
 		importMapping.put("HttpContent", "#include \"HttpContent.h\"");
-		importMapping.put("KnetikObject", "#include \"KnetikObject.h\"");
+		importMapping.put("KnetikCloudObject", "#include \"KnetikCloudObject.h\"");
 		importMapping.put("TArray", "");
 		importMapping.put("TMap", "");
 	}
