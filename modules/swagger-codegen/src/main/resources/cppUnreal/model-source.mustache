@@ -12,6 +12,10 @@
 #pragma optimize("", off)
 #endif // KNETIK_CLOUD_DEBUG
 
+// ghornmoen TODO: remove
+#pragma optimize("", off)
+
+
 {{classname}}::{{classname}}()
 {
 	{{#vars}}
@@ -25,7 +29,7 @@
 	{{name}} = {{{defaultValue}}};
 	{{/isPrimitiveType}}
 	{{^isPrimitiveType}}
-	{{name}} = NewObject<U{{{baseType}}}>();
+	{{name}} = NewObject<{{{baseType}}}>();
 	{{/isPrimitiveType}}
 	{{/isString}}
 	{{/isContainer}}
@@ -88,7 +92,6 @@ void {{classname}}::FromJson(TSharedPtr<FJsonObject> JsonObject)
 	{{#vars}}
 	{{^isInherited}}
 	{{#isListContainer}}
-
 	{{name}}.Empty();
 	const TArray<TSharedPtr<FJsonValue>>* {{name}}JsonValueArray = nullptr;
 	if (JsonObject->TryGetArrayField("{{baseName}}", {{name}}JsonValueArray))
@@ -97,16 +100,17 @@ void {{classname}}::FromJson(TSharedPtr<FJsonObject> JsonObject)
 		{
 			{{#items.isString}}
 			FString CurrentItem;
+			KnetikCloudJson::FromJsonValue<{{{items.baseType}}}>(ItemJsonValue, CurrentItem);
 			{{/items.isString}}
 			{{^items.isString}}
 			{{#items.isPrimitiveType}}
 			{{{items.datatype}}} CurrentItem;
+			KnetikCloudJson::FromJsonValue<{{{items.baseType}}}>(ItemJsonValue, CurrentItem);
 			{{/items.isPrimitiveType}}
 			{{^items.isPrimitiveType}}
-			{{{items.baseType}}} CurrentItem = nullptr;
+			{{{items.datatype}}} CurrentItem = KnetikCloudJson::UObjectFromJsonValue<{{{items.baseType}}}>(ItemJsonValue);
 			{{/items.isPrimitiveType}}
 			{{/items.isString}}
-			KnetikCloudJson::FromJsonValue<>(ItemJsonValue, CurrentItem);
 			{{name}}.Add(CurrentItem);
 		}
 	}
@@ -124,25 +128,27 @@ void {{classname}}::FromJson(TSharedPtr<FJsonObject> JsonObject)
 		{
 			{{#items.isString}}
 			FString CurrentItem;
+			KnetikCloudJson::FromJsonValue<{{{items.baseType}}}>(KeyValuePair.Value, CurrentItem);
 			{{/items.isString}}
 			{{^items.isString}}
 			{{#items.isPrimitiveType}}
 			{{{items.datatype}}} CurrentItem;
+			KnetikCloudJson::FromJsonValue<{{{items.baseType}}}>(KeyValuePair.Value, CurrentItem);
 			{{/items.isPrimitiveType}}
 			{{^items.isPrimitiveType}}
-			{{{items.baseType}}} CurrentItem = nullptr;
+			{{{items.datatype}}} CurrentItem = KnetikCloudJson::UObjectFromJsonValue<{{{items.baseType}}}>(KeyValuePair.Value);
 			{{/items.isPrimitiveType}}
 			{{/items.isString}}
-			KnetikCloudJson::FromJsonValue<>(KeyValuePair.Value, CurrentItem);
 			{{name}}.Add(KeyValuePair.Key, CurrentItem);
 		}
 	}
 
 	{{/isMapContainer}}
 	{{^isMapContainer}}
-	KnetikCloudJson::GetFromJsonObject<>(JsonObject, "{{baseName}}", {{name}});
+	KnetikCloudJson::GetFromJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", {{name}});
 	{{/isMapContainer}}
 	{{/isListContainer}}
+
 	{{/isInherited}}
 	{{/vars}}
 }
@@ -153,7 +159,7 @@ FString {{classname}}::GetSubtypeString()
 	return "{{vendorExtensions.x-discriminator-value}}";
 }
 
-{{{parent}}} {{classname}}::CreateSubtype()
+{{{parent}}}* {{classname}}::CreateSubtype()
 {
 	return NewObject<{{classname}}>();
 }

@@ -19,6 +19,11 @@
 	b{{operationId}}IsComplete = false;
 	b{{operationId}}WasSuccessful = false;
 	{{#returnType}}
+	{{#returnContainer}}
+	{{#isMapContainer}}
+	{{operationId}}ServerResponse = NewObject<UKnetikCloudStringMap>();
+	{{/isMapContainer}}
+	{{/returnContainer}}
 	{{^returnContainer}}
 	{{#vendorExtensions.x-codegen-response.isPrimitiveType}}
 	{{operationId}}ServerResponse = {{vendorExtensions.x-codegen-response.defaultValue}};
@@ -142,7 +147,7 @@ void {{classname}}::{{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{
 	JsonObject->SetArrayField("{{paramName}}", JsonValueArray);
 	{{/isListContainer}}
 	{{^isListContainer}}
-	KnetikCloudJson::AddToJsonObject<>(JsonObject, "{{baseName}}", {{paramName}});
+	KnetikCloudJson::AddToJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", {{paramName}});
 	{{/isListContainer}}
 	JsonBody = KnetikCloudJson::ToContentString(JsonObject);
 
@@ -173,7 +178,6 @@ void {{classname}}::{{operationId}}OnResponseReceived(FHttpRequestPtr Request, F
 		if (ResponseCode == KnetikCloudConstants::HttpSuccessfulStatusCode)
 		{
 			{{#returnType}}
-
 			FString ContentString = Response->GetContentAsString();
 #if defined(KNETIK_CLOUD_DEBUG)
 			KnetikCloudLogger::LogInfo("{{operationId}} content string: " + ContentString);
@@ -190,16 +194,17 @@ void {{classname}}::{{operationId}}OnResponseReceived(FHttpRequestPtr Request, F
 					{
 						{{#vendorExtensions.x-codegen-response.items.isString}}
 						FString CurrentItem;
+						KnetikCloudJson::FromJsonValue<{{{vendorExtensions.x-codegen-response.items.baseType}}}>(ItemJsonValue, CurrentItem);
 						{{/vendorExtensions.x-codegen-response.items.isString}}
 						{{^vendorExtensions.x-codegen-response.items.isString}}
 						{{#vendorExtensions.x-codegen-response.items.isPrimitiveType}}
 						{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem;
+						KnetikCloudJson::FromJsonValue<{{{vendorExtensions.x-codegen-response.items.baseType}}}>(ItemJsonValue, CurrentItem);
 						{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
 						{{^vendorExtensions.x-codegen-response.items.isPrimitiveType}}
-						{{{vendorExtensions.x-codegen-response.items.baseType}}} CurrentItem = nullptr;
+						{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::UObjectFromJsonValue<{{{vendorExtensions.x-codegen-response.items.baseType}}}>(ItemJsonValue);
 						{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
 						{{/vendorExtensions.x-codegen-response.items.isString}}
-						KnetikCloudJson::FromJsonValue<>(ItemJsonValue, CurrentItem);
 						{{operationId}}ServerResponse.Add(CurrentItem);
 					}
 					else
@@ -225,17 +230,18 @@ void {{classname}}::{{operationId}}OnResponseReceived(FHttpRequestPtr Request, F
 				{
 					{{#vendorExtensions.x-codegen-response.items.isString}}
 					FString CurrentItem;
+					KnetikCloudJson::FromJsonValue<{{{vendorExtensions.x-codegen-response.items.baseType}}}>(KeyValuePair.Value, CurrentItem);
 					{{/vendorExtensions.x-codegen-response.items.isString}}
 					{{^vendorExtensions.x-codegen-response.items.isString}}
 					{{#vendorExtensions.x-codegen-response.items.isPrimitiveType}}
 					{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem;
+					KnetikCloudJson::FromJsonValue<{{{vendorExtensions.x-codegen-response.items.baseType}}}>(KeyValuePair.Value, CurrentItem);
 					{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
 					{{^vendorExtensions.x-codegen-response.items.isPrimitiveType}}
-					{{{vendorExtensions.x-codegen-response.items.baseType}}} CurrentItem = nullptr;
+					{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::UObjectFromJsonValue<{{{vendorExtensions.x-codegen-response.items.baseType}}}>(KeyValuePair.Value);
 					{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
 					{{/vendorExtensions.x-codegen-response.items.isString}}
-					KnetikCloudJson::FromJsonValue<>(KeyValuePair.Value, CurrentItem);
-					{{operationId}}ServerResponse.Add(KeyValuePair.Key, CurrentItem);
+					{{operationId}}ServerResponse->StringMap.Add(KeyValuePair.Key, CurrentItem);
 				}
 			}
 			else
@@ -260,7 +266,7 @@ void {{classname}}::{{operationId}}OnResponseReceived(FHttpRequestPtr Request, F
 			{
 				if (JsonObject.IsValid())
 				{
-					{{operationId}}ServerResponse = KnetikCloudJson::UObjectFromJsonObject<U{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject);
+					{{operationId}}ServerResponse = KnetikCloudJson::UObjectFromJsonObject<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject);
 				}
 				else
 				{

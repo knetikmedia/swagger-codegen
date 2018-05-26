@@ -31,7 +31,7 @@ public:
 	{{#vendorExtensions.x-discriminator-value}}
 
 	static FString GetSubtypeString();
-	static {{{parent}}} CreateSubtype();
+	static {{{parent}}}* CreateSubtype();
 	{{/vendorExtensions.x-discriminator-value}}
 	{{#vars}}
 	{{^isInherited}}
