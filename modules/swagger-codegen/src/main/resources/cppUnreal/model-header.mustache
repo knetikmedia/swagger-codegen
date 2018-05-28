@@ -17,7 +17,7 @@
 #include "{{classFilename}}.generated.h"
 
 
-UCLASS(BlueprintType)
+UCLASS(Blueprintable, ClassGroup="KnetikCloud")
 class KNETIKCLOUDSDK_API {{classname}} : public {{#parent}}{{{parent}}}{{/parent}}{{^parent}}UObject{{/parent}}
 {
 	GENERATED_BODY()
