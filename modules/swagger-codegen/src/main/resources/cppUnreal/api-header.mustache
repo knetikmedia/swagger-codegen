@@ -140,7 +140,7 @@ public:
 	/// <param name="{{paramName}}">{{description}}{{^required}} (optional{{#defaultValue}}, default to {{.}}{{/defaultValue}}){{/required}}</param>
 	{{/allParams}}
 	UFUNCTION(BlueprintCallable, Category = "KnetikCloud")
-	void {{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+	void {{operationId}}({{#allParams}}{{#isContainer}}const {{{dataType}}}& {{paramName}}{{/isContainer}}{{^isContainer}}{{#isString}}const FString& {{paramName}}{{/isString}}{{^isString}}{{#isPrimitiveType}}{{{dataType}}} {{paramName}}{{/isPrimitiveType}}{{^isPrimitiveType}}const {{{dataType}}} {{paramName}}{{/isPrimitiveType}}{{/isString}}{{/isContainer}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
 	{{/operation}}
 
 private:

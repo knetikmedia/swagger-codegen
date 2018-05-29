@@ -56,7 +56,7 @@ void {{classname}}::Remove{{operationId}}Callback()
 	{{operationId}}Callback = nullptr;
 }
 
-void {{classname}}::{{operationId}}({{#allParams}}{{{dataType}}} {{paramName}}{{^required}}{{/required}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
+void {{classname}}::{{operationId}}({{#allParams}}{{#isContainer}}const {{{dataType}}}& {{paramName}}{{/isContainer}}{{^isContainer}}{{#isString}}const FString& {{paramName}}{{/isString}}{{^isString}}{{#isPrimitiveType}}{{{dataType}}} {{paramName}}{{/isPrimitiveType}}{{^isPrimitiveType}}const {{{dataType}}} {{paramName}}{{/isPrimitiveType}}{{/isString}}{{/isContainer}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
 {
 	{{#allParams}}
 	{{#required}}
