@@ -16,24 +16,24 @@
 {{classname}}::{{classname}}()
 {
 	{{#operation}}
-	b{{operationId}}IsComplete = false;
-	b{{operationId}}WasSuccessful = false;
+	b{{operationIdCamelCase}}IsComplete = false;
+	b{{operationIdCamelCase}}WasSuccessful = false;
 	{{#returnType}}
 	{{#returnContainer}}
 	{{#isMapContainer}}
-	{{operationId}}ServerResponse = NewObject<UKnetikCloudStringMap>();
+	{{operationIdCamelCase}}ServerResponse = NewObject<UKnetikCloudStringMap>();
 	{{/isMapContainer}}
 	{{/returnContainer}}
 	{{^returnContainer}}
 	{{#vendorExtensions.x-codegen-response.isPrimitiveType}}
-	{{operationId}}ServerResponse = {{vendorExtensions.x-codegen-response.defaultValue}};
+	{{operationIdCamelCase}}ServerResponse = {{vendorExtensions.x-codegen-response.defaultValue}};
 	{{/vendorExtensions.x-codegen-response.isPrimitiveType}}
 	{{^vendorExtensions.x-codegen-response.isPrimitiveType}}
 	{{#vendorExtensions.x-codegen-response.isString}}
-	{{operationId}}ServerResponse = TEXT("");
+	{{operationIdCamelCase}}ServerResponse = TEXT("");
 	{{/vendorExtensions.x-codegen-response.isString}}
 	{{^vendorExtensions.x-codegen-response.isString}}
-	{{operationId}}ServerResponse = NewObject<{{{returnBaseType}}}>();
+	{{operationIdCamelCase}}ServerResponse = NewObject<{{{returnBaseType}}}>();
 	{{/vendorExtensions.x-codegen-response.isString}}
 	{{/vendorExtensions.x-codegen-response.isPrimitiveType}}
 	{{/returnContainer}}
@@ -46,17 +46,17 @@
 }
 {{#operation}}
 
-void {{classname}}::Set{{operationId}}Callback({{operationId}}CallbackFunction Callback)
+void {{classname}}::Set{{operationIdCamelCase}}Callback({{operationIdCamelCase}}CallbackFunction Callback)
 {
-	{{operationId}}Callback = Callback;
+	{{operationIdCamelCase}}Callback = Callback;
 }
 
-void {{classname}}::Remove{{operationId}}Callback()
+void {{classname}}::Remove{{operationIdCamelCase}}Callback()
 {
-	{{operationId}}Callback = nullptr;
+	{{operationIdCamelCase}}Callback = nullptr;
 }
 
-void {{classname}}::{{operationId}}({{#allParams}}{{#isContainer}}const {{{dataType}}}& {{paramName}}{{/isContainer}}{{^isContainer}}{{#isString}}const FString& {{paramName}}{{/isString}}{{^isString}}{{#isPrimitiveType}}{{{dataType}}} {{paramName}}{{/isPrimitiveType}}{{^isPrimitiveType}}const {{{dataType}}} {{paramName}}{{/isPrimitiveType}}{{/isString}}{{/isContainer}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
+void {{classname}}::{{operationIdCamelCase}}({{#allParams}}{{#isContainer}}const {{{dataType}}}& {{paramName}}{{/isContainer}}{{^isContainer}}{{#isString}}const FString& {{paramName}}{{/isString}}{{^isString}}{{#isPrimitiveType}}{{{dataType}}} {{paramName}}{{/isPrimitiveType}}{{^isPrimitiveType}}const {{{dataType}}} {{paramName}}{{/isPrimitiveType}}{{/isString}}{{/isContainer}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
 {
 	{{#allParams}}
 	{{#required}}
@@ -64,7 +64,7 @@ void {{classname}}::{{operationId}}({{#allParams}}{{#isContainer}}const {{{dataT
 	{{^isContainer}}
 	if ({{paramName}} == nullptr)
 	{
-		KnetikCloudLogger::LogError(KnetikCloudConstants::HttpGenericErrorCode, "Missing required parameter '{{paramName}}' when calling {{classname}}->{{operationId}}");
+		KnetikCloudLogger::LogError(KnetikCloudConstants::HttpGenericErrorCode, "Missing required parameter '{{paramName}}' when calling {{classname}}->{{operationIdCamelCase}}");
 		return;
 	}
 	
@@ -85,8 +85,8 @@ void {{classname}}::{{operationId}}({{#allParams}}{{#isContainer}}const {{{dataT
 	Path = Path.Replace(*{{{paramName}}}Replacement, *KnetikCloudJson::ToContentString({{{paramName}}}));
 	{{/pathParams}}
 
-	b{{operationId}}IsComplete = false;
-	b{{operationId}}WasSuccessful = false;
+	b{{operationIdCamelCase}}IsComplete = false;
+	b{{operationIdCamelCase}}WasSuccessful = false;
 
 	{{#allParams}}
 	{{^isBodyParam}}
@@ -153,24 +153,24 @@ void {{classname}}::{{operationId}}({{#allParams}}{{#isContainer}}const {{{dataT
 
 	{{/bodyParam}}
 	{{#authMethods}}
-	AuthTypes.Add("{{name}}");
+	AuthTypes.Add("{{nameInCamelCase}}");
 	{{/authMethods}}
 	KnetikCloudLogger::LogInfo("getOAuthToken: Sending server request...");
-	TSharedRef<IHttpRequest> Request = UKnetikCloudClient::CreateRequest(
+	TSharedRef<IHttpRequest> HttpRequest = UKnetikCloudClient::CreateRequest(
 		Path,
 		"{{httpMethod}}",
 		AuthTypes,
 		QueryParams,
 		FormParams,
 		JsonBody);
-	Request->OnProcessRequestComplete().BindUObject(this, &{{classname}}::{{operationId}}OnResponseReceived);
-	Request->ProcessRequest();
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &{{classname}}::{{operationIdCamelCase}}OnResponseReceived);
+	HttpRequest->ProcessRequest();
 }
 
-void {{classname}}::{{operationId}}OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+void {{classname}}::{{operationIdCamelCase}}OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 {
-	b{{operationId}}IsComplete = true;
-	b{{operationId}}WasSuccessful = bWasSuccessful;
+	b{{operationIdCamelCase}}IsComplete = true;
+	b{{operationIdCamelCase}}WasSuccessful = bWasSuccessful;
 
 	if (Response.IsValid())
 	{
@@ -180,7 +180,7 @@ void {{classname}}::{{operationId}}OnResponseReceived(FHttpRequestPtr Request, F
 			{{#returnType}}
 			FString ContentString = Response->GetContentAsString();
 #if defined(KNETIK_CLOUD_DEBUG)
-			KnetikCloudLogger::LogInfo("{{operationId}} content string: " + ContentString);
+			KnetikCloudLogger::LogInfo("{{operationIdCamelCase}} content string: " + ContentString);
 #endif // KNETIK_CLOUD_DEBUG
 
 			{{#isListContainer}}
@@ -205,20 +205,20 @@ void {{classname}}::{{operationId}}OnResponseReceived(FHttpRequestPtr Request, F
 						{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::UObjectFromJsonValue<{{{vendorExtensions.x-codegen-response.items.baseType}}}>(ItemJsonValue);
 						{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
 						{{/vendorExtensions.x-codegen-response.items.isString}}
-						{{operationId}}ServerResponse.Add(CurrentItem);
+						{{operationIdCamelCase}}ServerResponse.Add(CurrentItem);
 					}
 					else
 					{
-						b{{operationId}}WasSuccessful = false;
-						KnetikCloudLogger::LogInfo("{{operationId}}: Unable to parse the content string: " + ContentString);
+						b{{operationIdCamelCase}}WasSuccessful = false;
+						KnetikCloudLogger::LogInfo("{{operationIdCamelCase}}: Unable to parse the content string: " + ContentString);
 						break;
 					}
 				}
 			}
 			else
 			{
-				b{{operationId}}WasSuccessful = false;
-				KnetikCloudLogger::LogInfo("{{operationId}}: Unable to parse the content string: " + ContentString);
+				b{{operationIdCamelCase}}WasSuccessful = false;
+				KnetikCloudLogger::LogInfo("{{operationIdCamelCase}}: Unable to parse the content string: " + ContentString);
 			}
 			{{/isListContainer}}
 			{{^isListContainer}}
@@ -241,24 +241,24 @@ void {{classname}}::{{operationId}}OnResponseReceived(FHttpRequestPtr Request, F
 					{{{vendorExtensions.x-codegen-response.items.datatype}}} CurrentItem = KnetikCloudJson::UObjectFromJsonValue<{{{vendorExtensions.x-codegen-response.items.baseType}}}>(KeyValuePair.Value);
 					{{/vendorExtensions.x-codegen-response.items.isPrimitiveType}}
 					{{/vendorExtensions.x-codegen-response.items.isString}}
-					{{operationId}}ServerResponse->StringMap.Add(KeyValuePair.Key, CurrentItem);
+					{{operationIdCamelCase}}ServerResponse->StringMap.Add(KeyValuePair.Key, CurrentItem);
 				}
 			}
 			else
 			{
-				b{{operationId}}WasSuccessful = false;
-				KnetikCloudLogger::LogInfo("{{operationId}}: Unable to parse the content string: " + ContentString);
+				b{{operationIdCamelCase}}WasSuccessful = false;
+				KnetikCloudLogger::LogInfo("{{operationIdCamelCase}}: Unable to parse the content string: " + ContentString);
 			}
 			{{/isMapContainer}}
 			{{^isMapContainer}}
 			{{#returnTypeIsPrimitive}}
 			
-			KnetikCloudJson::FromContentString(ContentString, {{operationId}}ServerResponse);
+			KnetikCloudJson::FromContentString(ContentString, {{operationIdCamelCase}}ServerResponse);
 			{{/returnTypeIsPrimitive}}
 			{{^returnTypeIsPrimitive}}
 			{{#vendorExtensions.x-codegen-response.isString}}
 			
-			KnetikCloudJson::FromContentString(ContentString, {{operationId}}ServerResponse);
+			KnetikCloudJson::FromContentString(ContentString, {{operationIdCamelCase}}ServerResponse);
 			{{/vendorExtensions.x-codegen-response.isString}}
 			{{^vendorExtensions.x-codegen-response.isString}}
 			TSharedPtr<FJsonObject> JsonObject;
@@ -266,12 +266,12 @@ void {{classname}}::{{operationId}}OnResponseReceived(FHttpRequestPtr Request, F
 			{
 				if (JsonObject.IsValid())
 				{
-					{{operationId}}ServerResponse = KnetikCloudJson::UObjectFromJsonObject<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject);
+					{{operationIdCamelCase}}ServerResponse = KnetikCloudJson::UObjectFromJsonObject<{{{vendorExtensions.x-codegen-response.baseType}}}>(JsonObject);
 				}
 				else
 				{
-					b{{operationId}}WasSuccessful = false;
-					KnetikCloudLogger::LogInfo("{{operationId}}: Unable to parse the content string: " + ContentString);
+					b{{operationIdCamelCase}}WasSuccessful = false;
+					KnetikCloudLogger::LogInfo("{{operationIdCamelCase}}: Unable to parse the content string: " + ContentString);
 				}
 			}
 			{{/vendorExtensions.x-codegen-response.isString}}
@@ -279,39 +279,39 @@ void {{classname}}::{{operationId}}OnResponseReceived(FHttpRequestPtr Request, F
 			{{/isMapContainer}}
 			{{/isListContainer}}
 
-			if (b{{operationId}}WasSuccessful)
+			if (b{{operationIdCamelCase}}WasSuccessful)
 			{
-				KnetikCloudLogger::LogInfo("{{operationId}}: Received response successfully.");
+				KnetikCloudLogger::LogInfo("{{operationIdCamelCase}}: Received response successfully.");
 			}
 			{{/returnType}}
 		}
 		else
 		{
-			b{{operationId}}WasSuccessful = false;
-			KnetikCloudLogger::LogError(ResponseCode, "{{operationId}}: Error response received!");
+			b{{operationIdCamelCase}}WasSuccessful = false;
+			KnetikCloudLogger::LogError(ResponseCode, "{{operationIdCamelCase}}: Error response received!");
 		}
 	}
 	else
 	{
-		b{{operationId}}WasSuccessful = false;
-		KnetikCloudLogger::LogError(KnetikCloudConstants::GenericErrorCode, "{{operationId}}: Unknown error - invalid response!");
+		b{{operationIdCamelCase}}WasSuccessful = false;
+		KnetikCloudLogger::LogError(KnetikCloudConstants::GenericErrorCode, "{{operationIdCamelCase}}: Unknown error - invalid response!");
 	}
 
 	{{#returnType}}
-	if ({{operationId}}Callback != nullptr)
+	if ({{operationIdCamelCase}}Callback != nullptr)
 	{
-		{{operationId}}Callback(bWasSuccessful, {{operationId}}ServerResponse);
+		{{operationIdCamelCase}}Callback(bWasSuccessful, {{operationIdCamelCase}}ServerResponse);
 	}
 
-	On{{operationId}}.Broadcast(bWasSuccessful, {{operationId}}ServerResponse);
+	On{{operationIdCamelCase}}.Broadcast(bWasSuccessful, {{operationIdCamelCase}}ServerResponse);
 	{{/returnType}}
 	{{^returnType}}
-	if ({{operationId}}Callback != nullptr)
+	if ({{operationIdCamelCase}}Callback != nullptr)
 	{
-		{{operationId}}Callback(bWasSuccessful);
+		{{operationIdCamelCase}}Callback(bWasSuccessful);
 	}
 
-	On{{operationId}}.Broadcast(bWasSuccessful);
+	On{{operationIdCamelCase}}.Broadcast(bWasSuccessful);
 	{{/returnType}}
 }
 {{/operation}}

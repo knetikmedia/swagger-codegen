@@ -41,18 +41,18 @@ public:
 	/// </summary>
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	{{#isContainer}}
-	{{{datatype}}} {{name}};
+	{{{datatype}}} {{nameInCamelCase}};
 	{{/isContainer}}
 	{{^isContainer}}
 	{{#isString}}
-	FString {{name}};
+	FString {{nameInCamelCase}};
 	{{/isString}}
 	{{^isString}}
 	{{#isPrimitiveType}}
-	{{{baseType}}} {{name}};
+	{{{baseType}}} {{nameInCamelCase}};
 	{{/isPrimitiveType}}
 	{{^isPrimitiveType}}
-	{{{datatype}}} {{name}};
+	{{{datatype}}} {{nameInCamelCase}};
 	{{/isPrimitiveType}}
 	{{/isString}}
 	{{/isContainer}}

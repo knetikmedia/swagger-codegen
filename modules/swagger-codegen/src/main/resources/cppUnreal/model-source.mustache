@@ -19,14 +19,14 @@
 	{{^isInherited}}
 	{{^isContainer}}
 	{{#isString}}
-	{{name}} = {{{defaultValue}}};
+	{{nameInCamelCase}} = {{{defaultValue}}};
 	{{/isString}}
 	{{^isString}}
 	{{#isPrimitiveType}}
-	{{name}} = {{{defaultValue}}};
+	{{nameInCamelCase}} = {{{defaultValue}}};
 	{{/isPrimitiveType}}
 	{{^isPrimitiveType}}
-	{{name}} = NewObject<{{{baseType}}}>();
+	{{nameInCamelCase}} = NewObject<{{{baseType}}}>();
 	{{/isPrimitiveType}}
 	{{/isString}}
 	{{/isContainer}}
@@ -50,30 +50,30 @@ TSharedPtr<FJsonObject> {{classname}}::ToJson() const
 	{{^isInherited}}
 	{{#isListContainer}}
 
-	TArray<TSharedPtr<FJsonValue>> {{name}}JsonValueArray;
-	{{name}}JsonValueArray.Reserve({{name}}.Num());
-	for (auto& CurrentItem : {{name}})
+	TArray<TSharedPtr<FJsonValue>> {{nameInCamelCase}}JsonValueArray;
+	{{nameInCamelCase}}JsonValueArray.Reserve({{nameInCamelCase}}.Num());
+	for (auto& CurrentItem : {{nameInCamelCase}})
 	{
 		TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<>(CurrentItem);
-		{{name}}JsonValueArray.Add(ItemJsonValue);
+		{{nameInCamelCase}}JsonValueArray.Add(ItemJsonValue);
 	}
 
-	JsonObject->SetArrayField("{{baseName}}", {{name}}JsonValueArray);
+	JsonObject->SetArrayField("{{baseName}}", {{nameInCamelCase}}JsonValueArray);
 	{{/isListContainer}}
 	{{^isListContainer}}
 	{{#isMapContainer}}
 
-	TSharedPtr<FJsonObject> {{name}}JsonMap = MakeShareable(new FJsonObject());
-	for (auto& KeyValuePair : {{name}})
+	TSharedPtr<FJsonObject> {{nameInCamelCase}}JsonMap = MakeShareable(new FJsonObject());
+	for (auto& KeyValuePair : {{nameInCamelCase}})
 	{
 		TSharedPtr<FJsonValue> ItemJsonValue = KnetikCloudJson::ToJsonValue<>(KeyValuePair.Value);
-		{{name}}JsonMap->Values.Add(KeyValuePair.Key, ItemJsonValue);
+		{{nameInCamelCase}}JsonMap->Values.Add(KeyValuePair.Key, ItemJsonValue);
 	}
 
-	JsonObject->SetObjectField("{{baseName}}", {{name}}JsonMap);
+	JsonObject->SetObjectField("{{baseName}}", {{nameInCamelCase}}JsonMap);
 	{{/isMapContainer}}
 	{{^isMapContainer}}
-	KnetikCloudJson::AddToJsonObject<>(JsonObject, "{{baseName}}", {{name}});
+	KnetikCloudJson::AddToJsonObject<>(JsonObject, "{{baseName}}", {{nameInCamelCase}});
 	{{/isMapContainer}}
 	{{/isListContainer}}
 	{{/isInherited}}
@@ -89,11 +89,11 @@ void {{classname}}::FromJson(TSharedPtr<FJsonObject> JsonObject)
 	{{#vars}}
 	{{^isInherited}}
 	{{#isListContainer}}
-	{{name}}.Empty();
-	const TArray<TSharedPtr<FJsonValue>>* {{name}}JsonValueArray = nullptr;
-	if (JsonObject->TryGetArrayField("{{baseName}}", {{name}}JsonValueArray))
+	{{nameInCamelCase}}.Empty();
+	const TArray<TSharedPtr<FJsonValue>>* {{nameInCamelCase}}JsonValueArray = nullptr;
+	if (JsonObject->TryGetArrayField("{{baseName}}", {{nameInCamelCase}}JsonValueArray))
 	{
-		for (auto& ItemJsonValue : *{{name}}JsonValueArray)
+		for (auto& ItemJsonValue : *{{nameInCamelCase}}JsonValueArray)
 		{
 			{{#items.isString}}
 			FString CurrentItem;
@@ -108,7 +108,7 @@ void {{classname}}::FromJson(TSharedPtr<FJsonObject> JsonObject)
 			{{{items.datatype}}} CurrentItem = KnetikCloudJson::UObjectFromJsonValue<{{{items.baseType}}}>(ItemJsonValue);
 			{{/items.isPrimitiveType}}
 			{{/items.isString}}
-			{{name}}.Add(CurrentItem);
+			{{nameInCamelCase}}.Add(CurrentItem);
 		}
 	}
 
@@ -116,12 +116,12 @@ void {{classname}}::FromJson(TSharedPtr<FJsonObject> JsonObject)
 	{{^isListContainer}}
 	{{#isMapContainer}}
 
-	{{name}}.Empty();
-	const TSharedPtr<FJsonObject>* {{name}}JsonObject = nullptr;
-	if (JsonObject->TryGetObjectField("{{baseName}}", {{name}}JsonObject))
+	{{nameInCamelCase}}.Empty();
+	const TSharedPtr<FJsonObject>* {{nameInCamelCase}}JsonObject = nullptr;
+	if (JsonObject->TryGetObjectField("{{baseName}}", {{nameInCamelCase}}JsonObject))
 	{
-		TMap<FString, TSharedPtr<FJsonValue>> {{name}}JsonValuesMap = (*{{name}}JsonObject)->Values;
-		for (auto& KeyValuePair : {{name}}JsonValuesMap)
+		TMap<FString, TSharedPtr<FJsonValue>> {{nameInCamelCase}}JsonValuesMap = (*{{nameInCamelCase}}JsonObject)->Values;
+		for (auto& KeyValuePair : {{nameInCamelCase}}JsonValuesMap)
 		{
 			{{#items.isString}}
 			FString CurrentItem;
@@ -136,13 +136,13 @@ void {{classname}}::FromJson(TSharedPtr<FJsonObject> JsonObject)
 			{{{items.datatype}}} CurrentItem = KnetikCloudJson::UObjectFromJsonValue<{{{items.baseType}}}>(KeyValuePair.Value);
 			{{/items.isPrimitiveType}}
 			{{/items.isString}}
-			{{name}}.Add(KeyValuePair.Key, CurrentItem);
+			{{nameInCamelCase}}.Add(KeyValuePair.Key, CurrentItem);
 		}
 	}
 
 	{{/isMapContainer}}
 	{{^isMapContainer}}
-	KnetikCloudJson::GetFromJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", {{name}});
+	KnetikCloudJson::GetFromJsonObject<{{{baseType}}}>(JsonObject, "{{baseName}}", {{nameInCamelCase}});
 	{{/isMapContainer}}
 	{{/isListContainer}}
 
