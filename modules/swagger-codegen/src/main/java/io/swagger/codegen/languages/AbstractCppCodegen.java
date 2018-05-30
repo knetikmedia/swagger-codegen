@@ -24,15 +24,9 @@ abstract public class AbstractCppCodegen extends DefaultCodegen implements Codeg
 
     @Override
     public String toParamName(String name) {
-        name = sanitizeName(super.toParamName(name));
-
-        if (name.length() > 1) {
-            return Character.toUpperCase(name.charAt(0)) + name.substring(1);
-        }
-
-        return name;
+        return sanitizeName(super.toParamName(name));
     }
-/*
+
     @Override
     public CodegenProperty fromProperty(String name, Property p) {
         CodegenProperty property = super.fromProperty(name, p);
@@ -45,5 +39,4 @@ abstract public class AbstractCppCodegen extends DefaultCodegen implements Codeg
         property.nameInCamelCase = nameInCamelCase;
         return property;
     }
-*/
 }
