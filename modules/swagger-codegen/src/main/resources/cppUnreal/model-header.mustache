@@ -17,7 +17,7 @@
 #include "{{classFilename}}.generated.h"
 
 
-UCLASS(BlueprintType)
+UCLASS(Blueprintable, ClassGroup="KnetikCloud")
 class KNETIKCLOUDSDK_API {{classname}} : public {{#parent}}{{{parent}}}{{/parent}}{{^parent}}UObject{{/parent}}
 {
 	GENERATED_BODY()
@@ -31,7 +31,7 @@ public:
 	{{#vendorExtensions.x-discriminator-value}}
 
 	static FString GetSubtypeString();
-	static {{{parent}}} CreateSubtype();
+	static {{{parent}}}* CreateSubtype();
 	{{/vendorExtensions.x-discriminator-value}}
 	{{#vars}}
 	{{^isInherited}}
@@ -41,18 +41,18 @@ public:
 	/// </summary>
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	{{#isContainer}}
-	{{{datatype}}} {{name}};
+	{{{datatype}}} {{nameInCamelCase}};
 	{{/isContainer}}
 	{{^isContainer}}
 	{{#isString}}
-	FString {{name}};
+	FString {{nameInCamelCase}};
 	{{/isString}}
 	{{^isString}}
 	{{#isPrimitiveType}}
-	{{{baseType}}} {{name}};
+	{{{baseType}}} {{nameInCamelCase}};
 	{{/isPrimitiveType}}
 	{{^isPrimitiveType}}
-	{{{datatype}}} {{name}};
+	{{{datatype}}} {{nameInCamelCase}};
 	{{/isPrimitiveType}}
 	{{/isString}}
 	{{/isContainer}}
