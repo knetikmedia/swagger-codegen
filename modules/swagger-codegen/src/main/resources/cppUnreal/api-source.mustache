@@ -72,7 +72,7 @@ void {{classname}}::{{operationIdCamelCase}}({{#allParams}}{{#isContainer}}const
 	{{/isPrimitiveType}}
 	{{/required}}
 	{{/allParams}}
-	FString Path("{{{path}}}");
+	FString UrlPath("{{{path}}}");
 	TArray<FString> AuthTypes;
 	TMap<FString, FString> QueryParams;
 	TMap<FString, FString> FormParams;
@@ -82,7 +82,7 @@ void {{classname}}::{{operationIdCamelCase}}({{#allParams}}{{#isContainer}}const
 	FString {{{paramName}}}Replacement("{");
 	{{{paramName}}}Replacement.Append("{{baseName}}");
 	{{{paramName}}}Replacement.Append("}");
-	Path = Path.Replace(*{{{paramName}}}Replacement, *KnetikCloudJson::ToContentString({{{paramName}}}));
+	UrlPath = UrlPath.Replace(*{{{paramName}}}Replacement, *KnetikCloudJson::ToContentString({{{paramName}}}));
 	{{/pathParams}}
 
 	b{{operationIdCamelCase}}IsComplete = false;
@@ -157,7 +157,7 @@ void {{classname}}::{{operationIdCamelCase}}({{#allParams}}{{#isContainer}}const
 	{{/authMethods}}
 	KnetikCloudLogger::LogInfo("getOAuthToken: Sending server request...");
 	TSharedRef<IHttpRequest> HttpRequest = UKnetikCloudClient::CreateRequest(
-		Path,
+		UrlPath,
 		"{{httpMethod}}",
 		AuthTypes,
 		QueryParams,
