@@ -499,4 +499,16 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 		return camelize(super.toParamName(name), false);
 	}
 
+	@Override
+	public CodegenProperty fromProperty(String name, Property p) {
+		CodegenProperty property = super.fromProperty(name, p);
+		String nameInCamelCase = property.nameInCamelCase;
+		if (nameInCamelCase.length() > 1) {
+			nameInCamelCase = sanitizeName(
+					Character.toUpperCase(nameInCamelCase.charAt(0)) + nameInCamelCase.substring(1));
+		}
+		property.nameInCamelCase = nameInCamelCase;
+		return property;
+	}
+
 }
