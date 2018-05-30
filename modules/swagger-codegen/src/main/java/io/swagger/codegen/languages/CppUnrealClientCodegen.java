@@ -494,4 +494,9 @@ public class CppUnrealClientCodegen extends AbstractCppCodegen {
 		}
 	}
 
+	@Override
+	public String toParamName(String name) {
+		return camelize(super.toParamName(name), false);
+	}
+
 }
