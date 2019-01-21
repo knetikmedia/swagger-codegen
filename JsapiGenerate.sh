@@ -7,9 +7,9 @@ fi
 JSON_FILE="$1"
 VERSION_NUMBER="$2"
 BASE_JAR="modules/swagger-codegen-cli/target/swagger-codegen-cli.jar"
-GIT_USERNAME="stoutfiles"
-GIT_EMAIL="shawn.stout@knetik.com"
-DEV_NAME="Shawn Stout"
+GIT_USERNAME="Tyler Novotny"
+GIT_EMAIL="tyler@knetik.com"
+DEV_NAME="Tyler Novotny"
 DEV_EMAIL="admin@knetikcloud.com"
 DEV_ORG="Knetik"
 DEV_ORG_URL="knetikcloud.com"
@@ -127,4 +127,25 @@ sed -i -e 's~'"$README_ORIGINAL"'~'"$README_REPLACEMENT"'~g' README.md
 git add -A	
 git commit -m "JSAPI Objective C API update"	
 git push -u origin master	
+cd ../..
+
+#Typescript-Angular2
+mkdir -p sdk/typescript-angular2
+chmod 777 sdk/typescript-angular2
+cd sdk/typescript-angular2
+
+git init
+git config user.name "$GIT_USERNAME"
+git config user.email "$GIT_EMAIL"
+git remote add origin git@github.com:knetikmedia/knetikcloud-typescript-angular2-client.git
+git pull origin master
+rm -r *
+
+cd ../..
+java -jar $BASE_JAR generate -i $JSON_FILE -l typescript-angular $ID_FLAGS --artifact-id knetikcloud-typescript-angular2-client -o sdk/typescript-angular2
+cd sdk/typescript-angular2
+
+git add -A
+git commit -m "JSAPI Typescript-Angular2 API update"
+git push -u origin master
 cd ../..
