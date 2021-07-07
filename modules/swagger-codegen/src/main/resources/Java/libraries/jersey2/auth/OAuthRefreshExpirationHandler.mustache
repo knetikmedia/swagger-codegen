@@ -1,0 +1,23 @@
+{{>licenseInfo}}
+
+package {{invokerPackage}}.auth;
+
+import {{invokerPackage}}.ApiClient;
+import {{invokerPackage}}.ApiException;
+
+{{>generatedAnnotation}}
+public class OAuthRefreshExpirationHandler implements OAuthExpirationHandler {
+
+	public void handle(OAuth oAuth) throws ApiException {
+		String refreshToken = oAuth.getRefreshToken();
+		if (refreshToken != null) {
+			synchronized (this) {
+				if (oAuth.getExpiration() != null && oAuth.getExpiration() > System.currentTimeMillis())
+					// another thread refreshed it?
+					return;
+				oAuth.refreshAuthentication();
+			}
+		}
+	}
+
+}

@@ -54,6 +54,7 @@ import {{invokerPackage}}.auth.Authentication;
 import {{invokerPackage}}.auth.HttpBasicAuth;
 import {{invokerPackage}}.auth.ApiKeyAuth;
 import {{invokerPackage}}.auth.OAuth;
+import {{invokerPackage}}.auth.OAuthExpirationHandler;
 
 {{>generatedAnnotation}}
 public class ApiClient {
@@ -86,7 +87,7 @@ public class ApiClient {
     authentications = new HashMap<String, Authentication>();{{#authMethods}}{{#isBasic}}
     authentications.put("{{name}}", new HttpBasicAuth());{{/isBasic}}{{#isApiKey}}
     authentications.put("{{name}}", new ApiKeyAuth({{#isKeyInHeader}}"header"{{/isKeyInHeader}}{{^isKeyInHeader}}"query"{{/isKeyInHeader}}, "{{keyParamName}}"));{{/isApiKey}}{{#isOAuth}}
-    authentications.put("{{name}}", new OAuth());{{/isOAuth}}{{/authMethods}}
+    authentications.put("{{name}}", new OAuth(this, "{{tokenUrl}}"));{{/isOAuth}}{{/authMethods}}
     // Prevent the authentications from being modified.
     authentications = Collections.unmodifiableMap(authentications);
   }
@@ -208,6 +209,23 @@ public class ApiClient {
   }
 
   /**
+   * Helper method to set expiration handler for the first OAuth2
+   * authentication.
+   * 
+   * @param expirationHandler
+   *            The expiration handler
+   */
+  public void setExpirationHandler(OAuthExpirationHandler expirationHandler) {
+    for (Authentication auth : authentications.values()) {
+      if (auth instanceof OAuth) {
+        ((OAuth) auth).setExpirationHandler(expirationHandler);
+        return;
+      }
+    }
+    throw new RuntimeException("No OAuth2 authentication configured!");
+  }
+
+  /**
    * Helper method to set access token for the first OAuth2 authentication.
    * @param accessToken Access token
    */
@@ -215,6 +233,41 @@ public class ApiClient {
     for (Authentication auth : authentications.values()) {
       if (auth instanceof OAuth) {
         ((OAuth) auth).setAccessToken(accessToken);
+        return;
+      }
+    }
+    throw new RuntimeException("No OAuth2 authentication configured!");
+  }
+  
+  /**
+   * Helper method to set expiration for the first OAuth2 authentication.
+   * 
+   * @param expiresIn
+   *            Token duration in seconds from oauth
+   */
+  public void setExpiresIn(String expiresIn) {
+    Long expiration = null;
+    if (expiresIn != null)
+      expiration = System.currentTimeMillis() + (Integer.parseInt(expiresIn) * 1000);
+    for (Authentication auth : authentications.values()) {
+      if (auth instanceof OAuth) {
+        ((OAuth) auth).setExpiration(expiration);
+        return;
+      }
+    }
+    throw new RuntimeException("No OAuth2 authentication configured!");
+  }
+
+  /**
+   * Helper method to set refresh token for the first OAuth2 authentication.
+   * 
+   * @param refreshToken
+   *            Refresh token
+   */
+  public void setRefreshToken(String refreshToken) {
+    for (Authentication auth : authentications.values()) {
+      if (auth instanceof OAuth) {
+        ((OAuth) auth).setRefreshToken(refreshToken);
         return;
       }
     }
@@ -782,7 +835,7 @@ public class ApiClient {
    *
    * @param authNames The authentications to apply
    */
-  protected void updateParamsForAuth(String[] authNames, List<Pair> queryParams, Map<String, String> headerParams) {
+  protected void updateParamsForAuth(String[] authNames, List<Pair> queryParams, Map<String, String> headerParams) throws ApiException {
     for (String authName : authNames) {
       Authentication auth = authentications.get(authName);
       if (auth == null) throw new RuntimeException("Authentication undefined: " + authName);
