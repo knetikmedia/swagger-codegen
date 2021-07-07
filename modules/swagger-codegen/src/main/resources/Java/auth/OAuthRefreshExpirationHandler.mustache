@@ -1,0 +1,22 @@
+{{>licenseInfo}}
+
+package {{invokerPackage}}.auth;
+
+{{>generatedAnnotation}}
+public abstract class OAuthRefreshExpirationHandler implements OAuthExpirationHandler {
+
+	public void handle(OAuth oAuth) {
+		String refreshToken = oAuth.getRefreshToken();
+		if (refreshToken != null) {
+			synchronized (this) {
+				if (oAuth.getExpiration() != null && oAuth.getExpiration() > System.currentTimeMillis())
+					// another thread refreshed it?
+					return;
+				refresh(oAuth);
+			}
+		}
+	}
+
+	public abstract void refresh(OAuth oAuth);
+  
+}
